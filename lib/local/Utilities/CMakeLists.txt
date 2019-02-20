@@ -7,6 +7,7 @@ SET(SOURCE
 	src/SequenceCapture.cpp
 	src/VisualizationUtils.cpp
 	src/Visualizer.cpp
+	src/GastroViz.cpp
 )
 
 SET(HEADERS
@@ -17,7 +18,8 @@ SET(HEADERS
 	include/RecorderOpenFaceParameters.h
 	include/SequenceCapture.h
 	include/VisualizationUtils.h
-	include/Visualizer.h	
+	include/Visualizer.h
+	include/GastroViz.h	
 )
 
 add_library( Utilities ${SOURCE} ${HEADERS})
