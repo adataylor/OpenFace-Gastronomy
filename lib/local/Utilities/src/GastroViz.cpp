@@ -31,7 +31,7 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "Visualizer.h"
+#include "GastroViz.h"
 #include "VisualizationUtils.h"
 #include "RotationHelpers.h"
 #include "ImageManipulationHelpers.h"
@@ -69,16 +69,18 @@ const std::map<std::string, std::string> AUS_DESCRIPTION = {
 	{ "AU26", "Jaw Drop            " },
 	{ "AU28", "Lip Suck            " },
 	{ "AU45", "Blink               " },
-
 };
 
-Visualizer::Visualizer(std::vector<std::string> arguments)
+// Set up the GastroViz instance
+GastroViz::GastroViz(std::vector<std::string> arguments)
 {
 	// By default not visualizing anything
+	// FALSE, by default we are visualizing AUs
+	// TODO check if also visualizing some other things	
 	this->vis_track = false;
 	this->vis_hog = false;
 	this->vis_align = false;
-	this->vis_aus = false;
+	this->vis_aus = true;
 
 	for (size_t i = 0; i < arguments.size(); ++i)
 	{
@@ -109,7 +111,7 @@ Visualizer::Visualizer(std::vector<std::string> arguments)
 
 }
 
-Visualizer::Visualizer(bool vis_track, bool vis_hog, bool vis_align, bool vis_aus)
+GastroViz::GastroViz(bool vis_track, bool vis_hog, bool vis_align, bool vis_aus)
 {
 	this->vis_track = vis_track;
 	this->vis_hog = vis_hog;
@@ -118,7 +120,7 @@ Visualizer::Visualizer(bool vis_track, bool vis_hog, bool vis_align, bool vis_au
 }
 
 // Setting the image on which to draw
-void Visualizer::SetImage(const cv::Mat& canvas, float fx, float fy, float cx, float cy)
+void GastroViz::SetImage(const cv::Mat& canvas, float fx, float fy, float cx, float cy)
 {
 	// Convert the image to 8 bit RGB
 	captured_image = canvas.clone();
@@ -136,7 +138,7 @@ void Visualizer::SetImage(const cv::Mat& canvas, float fx, float fy, float cx, f
 }
 
 
-void Visualizer::SetObservationFaceAlign(const cv::Mat& aligned_face)
+void GastroViz::SetObservationFaceAlign(const cv::Mat& aligned_face)
 {
 	if(this->aligned_face_image.empty())
 	{
@@ -148,7 +150,7 @@ void Visualizer::SetObservationFaceAlign(const cv::Mat& aligned_face)
 	}
 }
 
-void Visualizer::SetObservationHOG(const cv::Mat_<double>& hog_descriptor, int num_cols, int num_rows)
+void GastroViz::SetObservationHOG(const cv::Mat_<double>& hog_descriptor, int num_cols, int num_rows)
 {
 	if(vis_hog)
 	{
@@ -166,8 +168,8 @@ void Visualizer::SetObservationHOG(const cv::Mat_<double>& hog_descriptor, int n
 
 }
 
-
-void Visualizer::SetObservationLandmarks(const cv::Mat_<float>& landmarks_2D, double confidence, const cv::Mat_<int>& visibilities)
+// Draws the dots on the faces of the person if they have been successfully located
+void GastroViz::SetObservationLandmarks(const cv::Mat_<float>& landmarks_2D, double confidence, const cv::Mat_<int>& visibilities)
 {
 
 	if(confidence > visualisation_boundary)
@@ -207,7 +209,9 @@ void Visualizer::SetObservationLandmarks(const cv::Mat_<float>& landmarks_2D, do
 	}
 }
 
-void Visualizer::SetObservationPose(const cv::Vec6f& pose, double confidence)
+
+// Draw the box around the person's face if it's sufficiently confident
+void GastroViz::SetObservationPose(const cv::Vec6f& pose, double confidence)
 {
 
 	// Only draw if the reliability is reasonable, the value is slightly ad-hoc
@@ -228,9 +232,116 @@ void Visualizer::SetObservationPose(const cv::Vec6f& pose, double confidence)
 	}
 }
 
-void Visualizer::SetObservationActionUnits(const std::vector<std::pair<std::string, double> >& au_intensities,
+void GastroViz::SetFeatures(const std::vector<std::pair<std::string, double> >& au_intensities,
 	const std::vector<std::pair<std::string, double> >& au_occurences)
 {
+	// For each of the noticed AUs
+	if (au_intensities.size() > 0 || au_occurences.size() > 0)
+	{
+
+		std::set<std::string> au_names;
+		std::map<std::string, bool> occurences_map;
+		std::map<std::string, double> intensities_map;
+
+		for (size_t idx = 0; idx < au_intensities.size(); idx++)
+		{
+			au_names.insert(au_intensities[idx].first);
+			intensities_map[au_intensities[idx].first] = au_intensities[idx].second;
+		}
+
+		for (size_t idx = 0; idx < au_occurences.size(); idx++)
+		{
+			au_names.insert(au_occurences[idx].first);
+			occurences_map[au_occurences[idx].first] = au_occurences[idx].second > 0;
+		}
+
+		const int AU_TRACKBAR_LENGTH = 400;
+		const int AU_TRACKBAR_HEIGHT = 10;
+
+		const int MARGIN_X = 185;
+		const int MARGIN_Y = 10;
+
+		const int nb_aus = (int) au_names.size();
+
+		// Do not reinitialize
+		if (action_units_image.empty())
+		{
+			action_units_image = cv::Mat(nb_aus * (AU_TRACKBAR_HEIGHT + 10) + MARGIN_Y * 2, AU_TRACKBAR_LENGTH + MARGIN_X, CV_8UC3, cv::Scalar(255, 255, 255));
+		}
+		else
+		{
+			action_units_image.setTo(255);
+		}
+
+		std::map<std::string, std::pair<bool, double>> aus;
+
+		// first, prepare a mapping "AU name" -> { present, intensity }
+		for (auto au_name : au_names)
+		{
+			// Insert the intensity and AU presense (as these do not always overlap check if they exist first)
+			bool occurence = false;
+			if (occurences_map.find(au_name) != occurences_map.end())
+			{
+				occurence = occurences_map[au_name] != 0;
+			}
+			else
+			{
+				// If we do not have an occurence label, trust the intensity one
+				occurence = intensities_map[au_name] > 1;
+			}
+			double intensity = 0.0;
+			if (intensities_map.find(au_name) != intensities_map.end())
+			{
+				intensity = intensities_map[au_name];
+			}
+			else
+			{
+				// If we do not have an intensity label, trust the occurence one
+				intensity = occurences_map[au_name] == 0 ? 0 : 5;
+			}
+
+			aus[au_name] = std::make_pair(occurence, intensity);
+		}
+
+		// then, build the graph
+		unsigned int idx = 0;
+		for (auto& au : aus)
+		{
+			std::string name = au.first;
+			bool present = au.second.first;
+			double intensity = au.second.second;
+
+			int offset = MARGIN_Y + idx * (AU_TRACKBAR_HEIGHT + 10);
+			std::ostringstream au_i;
+			au_i << std::setprecision(2) << std::setw(4) << std::fixed << intensity;
+			cv::putText(action_units_image, name, cv::Point(10, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.5, CV_RGB(present ? 0 : 200, 0, 0), 1, cv::LINE_AA);
+			cv::putText(action_units_image, AUS_DESCRIPTION.at(name), cv::Point(55, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(0, 0, 0), 1, cv::LINE_AA);
+
+			if (present)
+			{
+				cv::putText(action_units_image, au_i.str(), cv::Point(160, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(0, 100, 0), 1, cv::LINE_AA);
+				cv::rectangle(action_units_image, cv::Point(MARGIN_X, offset),
+					cv::Point((int)(MARGIN_X + AU_TRACKBAR_LENGTH * intensity / 5.0), offset + AU_TRACKBAR_HEIGHT),
+					cv::Scalar(128, 128, 128),
+					cv::FILLED);
+			}
+			else
+			{
+				cv::putText(action_units_image, "0.00", cv::Point(160, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(0, 0, 0), 1, cv::LINE_AA);
+			}
+			idx++;
+		}
+	}
+}
+
+
+
+
+//Create separate window, and display a graph of all the currently visible action units
+void GastroViz::SetObservationActionUnits(const std::vector<std::pair<std::string, double> >& au_intensities,
+	const std::vector<std::pair<std::string, double> >& au_occurences)
+{
+	// For each of the noticed AUs
 	if (au_intensities.size() > 0 || au_occurences.size() > 0)
 	{
 
@@ -331,7 +442,7 @@ void Visualizer::SetObservationActionUnits(const std::vector<std::pair<std::stri
 
 
 // Eye gaze infomration drawing, first of eye landmarks then of gaze
-void Visualizer::SetObservationGaze(const cv::Point3f& gaze_direction0, const cv::Point3f& gaze_direction1, const std::vector<cv::Point2f>& eye_landmarks2d, const std::vector<cv::Point3f>& eye_landmarks3d, double confidence)
+void GastroViz::SetObservationGaze(const cv::Point3f& gaze_direction0, const cv::Point3f& gaze_direction1, const std::vector<cv::Point2f>& eye_landmarks2d, const std::vector<cv::Point3f>& eye_landmarks3d, double confidence)
 {
 	if(confidence > visualisation_boundary)
 	{
@@ -406,7 +517,8 @@ void Visualizer::SetObservationGaze(const cv::Point3f& gaze_direction0, const cv
 	}
 }
 
-void Visualizer::SetFps(double fps)
+// Label the image with the framerate
+void GastroViz::SetFps(double fps)
 {
 	// Write out the framerate on the image before displaying it
 	char fpsC[255];
@@ -416,7 +528,10 @@ void Visualizer::SetFps(double fps)
 	cv::putText(captured_image, fpsSt, cv::Point(10, 20), cv::FONT_HERSHEY_SIMPLEX, 0.5, CV_RGB(255, 0, 0), 1, cv::LINE_AA);
 }
 
-char Visualizer::ShowObservation()
+
+// The code that actually displays each of the elements in their windows
+// Each imshow launches its own new window
+char GastroViz::ShowObservation()
 {
 	bool ovservation_shown = false;
 
@@ -451,12 +566,50 @@ char Visualizer::ShowObservation()
 
 }
 
-cv::Mat Visualizer::GetVisImage()
+// Get the normal, unaltered image for changes	
+cv::Mat GastroViz::GetVisImage()
 {
 	return captured_image;
 }
 
-cv::Mat Visualizer::GetHOGVis()
+cv::Mat GastroViz::GetHOGVis()
 {
 	return hog_image;
+}
+
+
+// A sample function for graphing a histogram on an input image
+void GastroViz::showHistogram(cv::Mat src, cv::Mat &hist_image)
+{ // based on http://docs.opencv.org/2.4.4/modules/imgproc/doc/histograms.html?highlight=histogram#calchist
+
+   int sbins = 256;
+   int histSize[] = {sbins};
+
+   float sranges[] = { 0, 256 };
+   const float* ranges[] = { sranges };
+   cv::MatND hist;
+   int channels[] = {0};
+
+   cv::calcHist( &src, 1, channels, cv::Mat(), // do not use mask
+       hist, 1, histSize, ranges,
+       true, // the histogram is uniform
+       false );
+
+   double maxVal=0;
+   minMaxLoc(hist, 0, &maxVal, 0, 0);
+
+   int xscale = 10;
+   int yscale = 10;
+   //hist_image.create(
+   hist_image = cv::Mat::zeros(256, sbins*xscale, CV_8UC3);
+
+   for( int s = 0; s < sbins; s++ )
+   {
+       float binVal = hist.at<float>(s, 0);
+       int intensity = cvRound(binVal*255/maxVal);
+       rectangle( hist_image, cv::Point(s*xscale, 0),
+           cv::Point( (s+1)*xscale - 1, intensity),
+           cv::Scalar::all(255),
+           CV_FILLED );
+   }
 }
