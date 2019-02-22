@@ -33,11 +33,12 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 
-// HRI_Classifier.cpp : Defines the entry point for the multiple face tracking console application, and also classification based on those outputs.
+// HRI_Classifier.cpp : Defines the entry point for the multiple face tracking console application, 
+// and also classification based on those outputs.
 #include "LandmarkCoreIncludes.h"
 
 #include "VisualizationUtils.h"
-#include "Visualizer.h"
+#include "GastroViz.h"
 #include "SequenceCapture.h"
 #include <RecorderOpenFace.h>
 #include <RecorderOpenFaceParameters.h>
@@ -75,6 +76,8 @@ vector<string> get_arguments(int argc, char **argv)
 	}
 	return arguments;
 }
+
+
 
 void NonOverlapingDetections(const vector<LandmarkDetector::CLNF>& clnf_models, vector<cv::Rect_<float> >& face_detections)
 {
@@ -154,6 +157,8 @@ int main(int argc, char **argv)
 	face_models.push_back(face_model);
 	active_models.push_back(false);
 
+
+	// For each of the faces we found, add a face SLOT to the logger
 	for (int i = 1; i < num_faces_max; ++i)
 	{
 		face_models.push_back(face_model);
@@ -180,7 +185,10 @@ int main(int argc, char **argv)
 	Utilities::SequenceCapture sequence_reader;
 
 	// A utility for visualizing the results (show just the tracks)
-	Utilities::Visualizer visualizer(arguments);
+	Utilities::GastroViz gastroVisualizer(arguments);
+
+	//Logger
+	Utilities::FeatureLogger featureLogger(arguments);
 
 	// Tracking FPS for visualization
 	Utilities::FpsTracker fps_tracker;
@@ -188,7 +196,14 @@ int main(int argc, char **argv)
 
 	int sequence_number = 0;
 	
+	vector<float> needOverTime;
+	vector<float> poseOverTime;
+
+	vector<float> poseWindow;
+	vector<float> handsOverTime;
+
 	
+	// Actually digest, display, and log the data
 	while (true) // this is not a for loop as we might also be reading from a webcam
 	{
 		// The sequence reader chooses what to open based on command line arguments provided
@@ -214,7 +229,7 @@ int main(int argc, char **argv)
 		if (sequence_reader.IsWebcam())
 		{
 			INFO_STREAM("WARNING: using a webcam in feature extraction, forcing visualization of tracking to allow quitting the application (press q)");
-			visualizer.vis_track = true;
+			gastroVisualizer.vis_track = true;
 		}
 
 		if (recording_params.outputAUs())
@@ -225,6 +240,7 @@ int main(int argc, char **argv)
 		// For reporting progress
 		double reported_completion = 0;
 
+		// Now that everything is set up, we digest new pictures
 		INFO_STREAM("Starting tracking");
 		while (!rgb_image.empty())
 		{
@@ -317,7 +333,7 @@ int main(int argc, char **argv)
 			// Keeping track of FPS
 			fps_tracker.AddFrame();
 
-			visualizer.SetImage(rgb_image, sequence_reader.fx, sequence_reader.fy, sequence_reader.cx, sequence_reader.cy);
+			gastroVisualizer.SetImage(rgb_image, sequence_reader.fx, sequence_reader.fy, sequence_reader.cx, sequence_reader.cy);
 
 			// Go through every model and detect eye gaze, record results and visualise the results
 			for (size_t model = 0; model < face_models.size(); ++model)
@@ -344,20 +360,26 @@ int main(int argc, char **argv)
 					cv::Mat_<double> hog_descriptor; int num_hog_rows = 0, num_hog_cols = 0;
 
 					// Perform AU detection and HOG feature extraction, as this can be expensive only compute it if needed by output or visualization
-					if (recording_params.outputAlignedFaces() || recording_params.outputHOG() || recording_params.outputAUs() || visualizer.vis_align || visualizer.vis_hog)
+					if (recording_params.outputAlignedFaces() || recording_params.outputHOG() || recording_params.outputAUs() || gastroVisualizer.vis_align || gastroVisualizer.vis_hog)
 					{
 						face_analyser.PredictStaticAUsAndComputeFeatures(rgb_image, face_models[model].detected_landmarks);
 						face_analyser.GetLatestAlignedFace(sim_warped_img);
 						face_analyser.GetLatestHOG(hog_descriptor, num_hog_rows, num_hog_cols);
 					}
 
+					// TODO store traits over time in their corresponding arrays
+
 					// Visualize the features
-					visualizer.SetObservationFaceAlign(sim_warped_img);
-					visualizer.SetObservationHOG(hog_descriptor, num_hog_rows, num_hog_cols);
-					visualizer.SetObservationLandmarks(face_models[model].detected_landmarks, face_models[model].detection_certainty);
-					visualizer.SetObservationPose(LandmarkDetector::GetPose(face_models[model], sequence_reader.fx, sequence_reader.fy, sequence_reader.cx, sequence_reader.cy), face_models[model].detection_certainty);
-					visualizer.SetObservationGaze(gaze_direction0, gaze_direction1, LandmarkDetector::CalculateAllEyeLandmarks(face_models[model]), LandmarkDetector::Calculate3DEyeLandmarks(face_models[model], sequence_reader.fx, sequence_reader.fy, sequence_reader.cx, sequence_reader.cy), face_models[model].detection_certainty);
-					visualizer.SetObservationActionUnits(face_analyser.GetCurrentAUsReg(), face_analyser.GetCurrentAUsClass());
+					gastroVisualizer.SetObservationFaceAlign(sim_warped_img);
+					gastroVisualizer.SetObservationHOG(hog_descriptor, num_hog_rows, num_hog_cols);
+					gastroVisualizer.SetObservationLandmarks(face_models[model].detected_landmarks, face_models[model].detection_certainty);
+					gastroVisualizer.SetObservationPose(LandmarkDetector::GetPose(face_models[model], sequence_reader.fx, sequence_reader.fy, sequence_reader.cx, sequence_reader.cy), face_models[model].detection_certainty);
+					gastroVisualizer.SetObservationGaze(gaze_direction0, gaze_direction1, LandmarkDetector::CalculateAllEyeLandmarks(face_models[model]), LandmarkDetector::Calculate3DEyeLandmarks(face_models[model], sequence_reader.fx, sequence_reader.fy, sequence_reader.cx, sequence_reader.cy), face_models[model].detection_certainty);
+					gastroVisualizer.SetObservationActionUnits(face_analyser.GetCurrentAUsReg(), face_analyser.GetCurrentAUsClass());
+
+					// TODO store traits over time in the text file
+					// TODO add support for this to the recorder code
+
 
 					// Output features
 					open_face_rec.SetObservationHOG(face_models[model].detection_success, hog_descriptor, num_hog_rows, num_hog_cols, 31); // The number of channels in HOG is fixed at the moment, as using FHOG
@@ -375,14 +397,14 @@ int main(int argc, char **argv)
 				}
 			}
 
-			visualizer.SetFps(fps_tracker.GetFPS());
+			gastroVisualizer.SetFps(fps_tracker.GetFPS());
 
 			// Record frame
-			open_face_rec.SetObservationVisualization(visualizer.GetVisImage());
+			open_face_rec.SetObservationVisualization(gastroVisualizer.GetVisImage());
 			open_face_rec.WriteObservationTracked();
 
 			// show visualization and detect key presses
-			char character_press = visualizer.ShowObservation();
+			char character_press = gastroVisualizer.ShowObservation();
 
 			// restart the trackers
 			if (character_press == 'r')
