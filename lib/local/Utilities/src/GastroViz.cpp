@@ -256,7 +256,7 @@ cv::Scalar indicatorColor = pointColor3;
 
 //Draw an indicator circle
 // TODO turn into Sims-style indicator?
-circle(captured_image, humanPoint, radiusPoint, pointColor, thickness=1, cv::LINE_AA, shift=0);
+// circle(captured_image, humanPoint, radiusPoint, pointColor, thickness=1, cv::LINE_AA, shift=0);
 	
 
 }

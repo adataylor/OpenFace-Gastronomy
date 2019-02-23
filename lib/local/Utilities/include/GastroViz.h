@@ -75,7 +75,7 @@ namespace Utilities
 		void SetTopView(const cv::Vec6f& pose, double confidence, const std::vector<std::pair<std::string, double> >& au_intensities,
 	const std::vector<std::pair<std::string, double> >& au_occurences);
 
-		void GastroViz::showHistogram(cv::Mat src, cv::Mat &hist_image);
+		void showHistogram(cv::Mat src, cv::Mat &hist_image);
 
 
 		// Gaze related observations
