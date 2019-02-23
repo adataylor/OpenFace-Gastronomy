@@ -246,13 +246,13 @@ void GastroViz::SetNeediness(const std::vector<std::pair<std::string, double> >&
 {
 
 //Radius point should be proportional to head size
-Scalar pointColor0 = cv::Scalar(0, 0, 255);
-Scalar pointColor1 = cv::Scalar(0, 255, 255);
-Scalar pointColor2 = cv::Scalar(255, 0, 255);
-Scalar pointColor3 = cv::Scalar(0, 255, 0);
-Scalar pointColor4 = cv::Scalar(255, 0, 0);
+cv::Scalar pointColor0 = cv::Scalar(0, 0, 255);
+cv::Scalar pointColor1 = cv::Scalar(0, 255, 255);
+cv::Scalar pointColor2 = cv::Scalar(255, 0, 255);
+cv::Scalar pointColor3 = cv::Scalar(0, 255, 0);
+cv::Scalar pointColor4 = cv::Scalar(255, 0, 0);
 
-Scalar indicatorColor = pointColor3;
+cv::Scalar indicatorColor = pointColor3;
 
 //Draw an indicator circle
 // TODO turn into Sims-style indicator?
