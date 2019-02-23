@@ -39,6 +39,7 @@
 
 #include "VisualizationUtils.h"
 #include "GastroViz.h"
+#include "FeatureLog.h"
 #include "SequenceCapture.h"
 #include <RecorderOpenFace.h>
 #include <RecorderOpenFaceParameters.h>
@@ -189,7 +190,7 @@ int main(int argc, char **argv)
 	Utilities::GastroViz gastroVisualizer(arguments);
 
 	//Logger
-	Utilities::FeatureLogger featureLogger(arguments);
+	Utilities::FeatureLog featureLogger(arguments);
 
 	// Tracking FPS for visualization
 	Utilities::FpsTracker fps_tracker;
