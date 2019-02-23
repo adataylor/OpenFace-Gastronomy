@@ -55,12 +55,6 @@ std::cout << "Warning: " << stream << std::endl
 #define ERROR_STREAM( stream ) \
 std::cout << "Error: " << stream << std::endl
 
-bool FeatureLog::Setup(std::vector<std::string>& arguments)
-{
-	
-	return false;
-}
-
 // Input head factors, AUs
 bool FeatureLog::Log(const std::vector<std::pair<std::string, double> >& au_intensities,
 	const std::vector<std::pair<std::string, double> >& au_occurences, const cv::Vec6f& pose, double confidence)
