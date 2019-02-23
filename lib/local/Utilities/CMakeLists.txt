@@ -8,6 +8,7 @@ SET(SOURCE
 	src/VisualizationUtils.cpp
 	src/Visualizer.cpp
 	src/GastroViz.cpp
+	src/FeatureLog.cpp
 )
 
 SET(HEADERS
@@ -19,7 +20,8 @@ SET(HEADERS
 	include/SequenceCapture.h
 	include/VisualizationUtils.h
 	include/Visualizer.h
-	include/GastroViz.h	
+	include/GastroViz.h
+	include/FeatureLog.h	
 )
 
 add_library( Utilities ${SOURCE} ${HEADERS})
