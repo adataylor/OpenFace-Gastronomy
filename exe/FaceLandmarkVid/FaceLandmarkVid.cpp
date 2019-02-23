@@ -113,6 +113,9 @@ int main(int argc, char **argv)
 
 	int sequence_number = 0;
 
+	// NEED AND FEATURE ADDITIONS
+	vector<string> arguments
+
 	while (true) // this is not a for loop as we might also be reading from a webcam
 	{
 
@@ -151,12 +154,20 @@ int main(int argc, char **argv)
 			// Keeping track of FPS
 			fps_tracker.AddFrame();
 
+			// Log the new data
+
+
 			// Displaying the tracking visualizations
 			visualizer.SetImage(rgb_image, sequence_reader.fx, sequence_reader.fy, sequence_reader.cx, sequence_reader.cy);
 			visualizer.SetObservationLandmarks(face_model.detected_landmarks, face_model.detection_certainty, face_model.GetVisibilities());
 			visualizer.SetObservationPose(pose_estimate, face_model.detection_certainty);
 			visualizer.SetObservationGaze(gazeDirection0, gazeDirection1, LandmarkDetector::CalculateAllEyeLandmarks(face_model), LandmarkDetector::Calculate3DEyeLandmarks(face_model, sequence_reader.fx, sequence_reader.fy, sequence_reader.cx, sequence_reader.cy), face_model.detection_certainty);
 			visualizer.SetFps(fps_tracker.GetFPS());
+
+			// TODO add all features we want
+			visualizer.SetFeatures();
+
+
 			// detect key presses (due to pecularities of OpenCV, you can get it when displaying images)
 			char character_press = visualizer.ShowObservation();
 

@@ -79,6 +79,7 @@ vector<string> get_arguments(int argc, char **argv)
 
 
 
+
 void NonOverlapingDetections(const vector<LandmarkDetector::CLNF>& clnf_models, vector<cv::Rect_<float> >& face_detections)
 {
 
@@ -379,6 +380,8 @@ int main(int argc, char **argv)
 
 					// TODO store traits over time in the text file
 					// TODO add support for this to the recorder code
+
+					gastroVisualizer.SetTableObs(face_models[model].detected_landmarks, face_models[model].detection_certainty);
 
 
 					// Output features
