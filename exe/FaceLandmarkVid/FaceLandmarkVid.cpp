@@ -114,7 +114,6 @@ int main(int argc, char **argv)
 	int sequence_number = 0;
 
 	// NEED AND FEATURE ADDITIONS
-	vector<string> arguments
 
 	while (true) // this is not a for loop as we might also be reading from a webcam
 	{
