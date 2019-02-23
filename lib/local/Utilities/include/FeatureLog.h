@@ -78,7 +78,7 @@ namespace Utilities
 		std::vector<float> needLog;
 		std::vector<float> interruptLog;
 
-		std::vector<cv::Vec6f&> poseLog;
+		std::vector<cv::Vec6f> poseLog;
 		
 		//TODO add log of AUs
 
