@@ -164,7 +164,7 @@ int main(int argc, char **argv)
 			visualizer.SetFps(fps_tracker.GetFPS());
 
 			// TODO add all features we want
-			visualizer.SetFeatures();
+			//visualizer.SetFeatures();
 
 
 			// detect key presses (due to pecularities of OpenCV, you can get it when displaying images)
