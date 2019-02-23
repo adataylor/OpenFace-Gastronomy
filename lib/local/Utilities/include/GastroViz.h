@@ -72,6 +72,12 @@ namespace Utilities
 		void SetFeatures(const std::vector<std::pair<std::string, double> >& au_intensities, const std::vector<std::pair<std::string, double> >& au_occurences);
 		void SetNeediness(const std::vector<std::pair<std::string, double> >& au_intensities, const std::vector<std::pair<std::string, double> >& au_occurences);
 
+		void SetTopView(GastroViz::SetTopView(const cv::Vec6f& pose, double confidence, const std::vector<std::pair<std::string, double> >& au_intensities,
+	const std::vector<std::pair<std::string, double> >& au_occurences);
+
+		void GastroViz::showHistogram(cv::Mat src, cv::Mat &hist_image);
+
+
 		// Gaze related observations
 		void SetObservationGaze(const cv::Point3f& gazeDirection0, const cv::Point3f& gazeDirection1, const std::vector<cv::Point2f>& eye_landmarks, const std::vector<cv::Point3f>& eye_landmarks3d, double confidence);
 

@@ -235,106 +235,39 @@ void GastroViz::SetObservationPose(const cv::Vec6f& pose, double confidence)
 void GastroViz::SetFeatures(const std::vector<std::pair<std::string, double> >& au_intensities,
 	const std::vector<std::pair<std::string, double> >& au_occurences)
 {
-	// For each of the noticed AUs
-	if (au_intensities.size() > 0 || au_occurences.size() > 0)
-	{
 
-		std::set<std::string> au_names;
-		std::map<std::string, bool> occurences_map;
-		std::map<std::string, double> intensities_map;
 
-		for (size_t idx = 0; idx < au_intensities.size(); idx++)
-		{
-			au_names.insert(au_intensities[idx].first);
-			intensities_map[au_intensities[idx].first] = au_intensities[idx].second;
-		}
 
-		for (size_t idx = 0; idx < au_occurences.size(); idx++)
-		{
-			au_names.insert(au_occurences[idx].first);
-			occurences_map[au_occurences[idx].first] = au_occurences[idx].second > 0;
-		}
-
-		const int AU_TRACKBAR_LENGTH = 400;
-		const int AU_TRACKBAR_HEIGHT = 10;
-
-		const int MARGIN_X = 185;
-		const int MARGIN_Y = 10;
-
-		const int nb_aus = (int) au_names.size();
-
-		// Do not reinitialize
-		if (action_units_image.empty())
-		{
-			action_units_image = cv::Mat(nb_aus * (AU_TRACKBAR_HEIGHT + 10) + MARGIN_Y * 2, AU_TRACKBAR_LENGTH + MARGIN_X, CV_8UC3, cv::Scalar(255, 255, 255));
-		}
-		else
-		{
-			action_units_image.setTo(255);
-		}
-
-		std::map<std::string, std::pair<bool, double>> aus;
-
-		// first, prepare a mapping "AU name" -> { present, intensity }
-		for (auto au_name : au_names)
-		{
-			// Insert the intensity and AU presense (as these do not always overlap check if they exist first)
-			bool occurence = false;
-			if (occurences_map.find(au_name) != occurences_map.end())
-			{
-				occurence = occurences_map[au_name] != 0;
-			}
-			else
-			{
-				// If we do not have an occurence label, trust the intensity one
-				occurence = intensities_map[au_name] > 1;
-			}
-			double intensity = 0.0;
-			if (intensities_map.find(au_name) != intensities_map.end())
-			{
-				intensity = intensities_map[au_name];
-			}
-			else
-			{
-				// If we do not have an intensity label, trust the occurence one
-				intensity = occurences_map[au_name] == 0 ? 0 : 5;
-			}
-
-			aus[au_name] = std::make_pair(occurence, intensity);
-		}
-
-		// then, build the graph
-		unsigned int idx = 0;
-		for (auto& au : aus)
-		{
-			std::string name = au.first;
-			bool present = au.second.first;
-			double intensity = au.second.second;
-
-			int offset = MARGIN_Y + idx * (AU_TRACKBAR_HEIGHT + 10);
-			std::ostringstream au_i;
-			au_i << std::setprecision(2) << std::setw(4) << std::fixed << intensity;
-			cv::putText(action_units_image, name, cv::Point(10, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.5, CV_RGB(present ? 0 : 200, 0, 0), 1, cv::LINE_AA);
-			cv::putText(action_units_image, AUS_DESCRIPTION.at(name), cv::Point(55, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(0, 0, 0), 1, cv::LINE_AA);
-
-			if (present)
-			{
-				cv::putText(action_units_image, au_i.str(), cv::Point(160, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(0, 100, 0), 1, cv::LINE_AA);
-				cv::rectangle(action_units_image, cv::Point(MARGIN_X, offset),
-					cv::Point((int)(MARGIN_X + AU_TRACKBAR_LENGTH * intensity / 5.0), offset + AU_TRACKBAR_HEIGHT),
-					cv::Scalar(128, 128, 128),
-					cv::FILLED);
-			}
-			else
-			{
-				cv::putText(action_units_image, "0.00", cv::Point(160, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(0, 0, 0), 1, cv::LINE_AA);
-			}
-			idx++;
-		}
-	}
+	
 }
 
+void GastroViz::SetNeediness(const std::vector<std::pair<std::string, double> >& au_intensities,
+	const std::vector<std::pair<std::string, double> >& au_occurences)
+{
 
+//Radius point should be proportional to head size
+Scalar pointColor0 = cv::Scalar(0, 0, 255);
+Scalar pointColor1 = cv::Scalar(0, 255, 255);
+Scalar pointColor2 = cv::Scalar(255, 0, 255);
+Scalar pointColor3 = cv::Scalar(0, 255, 0);
+Scalar pointColor4 = cv::Scalar(255, 0, 0);
+
+Scalar indicatorColor = pointColor3;
+
+//Draw an indicator circle
+// TODO turn into Sims-style indicator?
+circle(captured_image, humanPoint, radiusPoint, pointColor, thickness=1, cv::LINE_AA, shift=0);
+	
+
+}
+
+void GastroViz::SetTopView(const cv::Vec6f& pose, double confidence, const std::vector<std::pair<std::string, double> >& au_intensities,
+	const std::vector<std::pair<std::string, double> >& au_occurences)
+{
+
+
+
+}
 
 
 //Create separate window, and display a graph of all the currently visible action units
@@ -579,6 +512,7 @@ cv::Mat GastroViz::GetHOGVis()
 
 
 // A sample function for graphing a histogram on an input image
+// Graphs a histogram of the colors in the original histogram
 void GastroViz::showHistogram(cv::Mat src, cv::Mat &hist_image)
 { // based on http://docs.opencv.org/2.4.4/modules/imgproc/doc/histograms.html?highlight=histogram#calchist
 
@@ -613,3 +547,5 @@ void GastroViz::showHistogram(cv::Mat src, cv::Mat &hist_image)
            CV_FILLED );
    }
 }
+
+
