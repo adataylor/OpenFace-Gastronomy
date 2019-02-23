@@ -38,7 +38,7 @@
 #include "GazeEstimation.h"
 
 #include <SequenceCapture.h>
-#include <Visualizer.h>
+#include <GastroViz.h>
 #include <VisualizationUtils.h>
 
 #define INFO_STREAM( stream ) \
@@ -105,7 +105,7 @@ int main(int argc, char **argv)
 	Utilities::SequenceCapture sequence_reader;
 
 	// A utility for visualizing the results (show just the tracks)
-	Utilities::Visualizer visualizer(true, false, false, false);
+	Utilities::GastroViz gastroVisualizer(true, false, false, false);
 
 	// Tracking FPS for visualization
 	Utilities::FpsTracker fps_tracker;
@@ -158,18 +158,18 @@ int main(int argc, char **argv)
 
 
 			// Displaying the tracking visualizations
-			visualizer.SetImage(rgb_image, sequence_reader.fx, sequence_reader.fy, sequence_reader.cx, sequence_reader.cy);
-			visualizer.SetObservationLandmarks(face_model.detected_landmarks, face_model.detection_certainty, face_model.GetVisibilities());
-			visualizer.SetObservationPose(pose_estimate, face_model.detection_certainty);
-			visualizer.SetObservationGaze(gazeDirection0, gazeDirection1, LandmarkDetector::CalculateAllEyeLandmarks(face_model), LandmarkDetector::Calculate3DEyeLandmarks(face_model, sequence_reader.fx, sequence_reader.fy, sequence_reader.cx, sequence_reader.cy), face_model.detection_certainty);
-			visualizer.SetFps(fps_tracker.GetFPS());
+			gastroVisualizer.SetImage(rgb_image, sequence_reader.fx, sequence_reader.fy, sequence_reader.cx, sequence_reader.cy);
+			gastroVisualizer.SetObservationLandmarks(face_model.detected_landmarks, face_model.detection_certainty, face_model.GetVisibilities());
+			gastroVisualizer.SetObservationPose(pose_estimate, face_model.detection_certainty);
+			gastroVisualizer.SetObservationGaze(gazeDirection0, gazeDirection1, LandmarkDetector::CalculateAllEyeLandmarks(face_model), LandmarkDetector::Calculate3DEyeLandmarks(face_model, sequence_reader.fx, sequence_reader.fy, sequence_reader.cx, sequence_reader.cy), face_model.detection_certainty);
+			gastroVisualizer.SetFps(fps_tracker.GetFPS());
 
 			// TODO add all features we want
-			visualizer.SetFeatures();
+			gastroVisualizer.SetFeatures();
 
 
 			// detect key presses (due to pecularities of OpenCV, you can get it when displaying images)
-			char character_press = visualizer.ShowObservation();
+			char character_press = gastroVisualizer.ShowObservation();
 
 			// restart the tracker
 			if (character_press == 'r')
