@@ -58,8 +58,8 @@ namespace Utilities
 		FeatureLog() {};
 
 		// Opening based on command line arguments
-	
 		bool Log(const std::vector<std::pair<std::string, double> >& au_intensities,
+	
 	const std::vector<std::pair<std::string, double> >& au_occurences, const cv::Vec6f& pose, double confidence);
 
 		std::vector<float> getNeedLog();
@@ -78,7 +78,7 @@ namespace Utilities
 		std::vector<float> needLog;
 		std::vector<float> interruptLog;
 
-		std::vector<cv::Vec6f& pose> poseLog;
+		std::vector<cv::Vec6f&> poseLog;
 		
 		//TODO add log of AUs
 
