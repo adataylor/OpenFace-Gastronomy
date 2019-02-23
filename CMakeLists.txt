@@ -240,6 +240,9 @@ if(CMAKE_CURRENT_SOURCE_DIR STREQUAL "${CMAKE_SOURCE_DIR}")
 endif()
 
 # executables
+
+add_subdirectory(exe/DemoMulti)
+add_subdirectory(exe/DemoSingle)
 add_subdirectory(exe/FaceLandmarkImg)
 add_subdirectory(exe/FaceLandmarkVid)
 add_subdirectory(exe/FaceLandmarkVidMulti)
