@@ -39,7 +39,7 @@
 
 #include "VisualizationUtils.h"
 #include "GastroViz.h"
-#include "FeatureLog.h"
+//#include "FeatureLog.h"
 #include "SequenceCapture.h"
 #include <RecorderOpenFace.h>
 #include <RecorderOpenFaceParameters.h>
@@ -190,7 +190,7 @@ int main(int argc, char **argv)
 	Utilities::GastroViz gastroVisualizer(arguments);
 
 	//Logger
-	Utilities::FeatureLog featureLogger(arguments);
+	//Utilities::FeatureLog featureLogger(arguments);
 
 	// Tracking FPS for visualization
 	Utilities::FpsTracker fps_tracker;
@@ -382,7 +382,7 @@ int main(int argc, char **argv)
 					// TODO store traits over time in the text file
 					// TODO add support for this to the recorder code
 
-					gastroVisualizer.SetTableObs(face_models[model].detected_landmarks, face_models[model].detection_certainty);
+					// gastroVisualizer.SetTableObs(face_models[model].detected_landmarks, face_models[model].detection_certainty);
 
 
 					// Output features
