@@ -289,7 +289,7 @@ void GastroViz::SetTopView(const cv::Vec6f& pose, double confidence, const std::
         humanPoint,
         5,
         need2,
-        thickness=5,
+        5,
         cv::LINE_AA);
 
 }
