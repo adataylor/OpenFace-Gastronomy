@@ -274,9 +274,11 @@ void GastroViz::SetTopView(const cv::Vec6f& pose, double confidence, const std::
 	// DISTANCES are in mm
 	// Use 1/10 of a meter incremements?
 
+	// PINK
 	cv::Scalar need1 = cv::Scalar(255, 0, 255);
 	// RED
 	cv::Scalar need2 = cv::Scalar(0, 0, 255);
+
 	cv::Scalar need3 = cv::Scalar(255, 0, 0);
 
 
@@ -284,12 +286,17 @@ void GastroViz::SetTopView(const cv::Vec6f& pose, double confidence, const std::
 	float pY = 1000.0 * pose[1] / 1000.0;
 	float pZ = 1000.0 * pose[2] / 1000.0;
 
+	// Add padding to keep stuff on screen
+	pX = pX + 20;
+	pY = pY + 20;
+	pZ = pZ + 20;
+
 	cv::Point humanPoint = cv::Point((int)pX, (int)pY);
 
 	cv::circle(top_view_image,
         humanPoint,
         10,
-        need1,
+        need3,
         5,
         cv::LINE_AA);
 
