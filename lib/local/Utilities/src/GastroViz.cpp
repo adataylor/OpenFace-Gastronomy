@@ -268,7 +268,7 @@ void GastroViz::SetTopView(const cv::Vec6f& pose, double confidence, const std::
 {
 	if (top_view_image.empty())
 	{
-		top_view_image = cv::Mat(300, 300, cv::Scalar(255, 255, 255));
+		top_view_image = cv::Mat(300, 300, CV_8UC3, cv::Scalar(255, 255, 255));
 	}
 
 	// DISTANCES are in mm
