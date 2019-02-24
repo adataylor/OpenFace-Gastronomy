@@ -135,6 +135,8 @@ void GastroViz::SetImage(const cv::Mat& canvas, float fx, float fy, float cx, fl
 	aligned_face_image = cv::Mat();
 	action_units_image = cv::Mat();
 
+	top_view_image = cv::Mat();
+
 }
 
 
@@ -264,8 +266,31 @@ cv::Scalar indicatorColor = pointColor3;
 void GastroViz::SetTopView(const cv::Vec6f& pose, double confidence, const std::vector<std::pair<std::string, double> >& au_intensities,
 	const std::vector<std::pair<std::string, double> >& au_occurences)
 {
+	if (top_view_image.empty())
+	{
+		top_view_image = cv::Mat(300, 300, cv::Scalar(255, 255, 255));
+	}
+
+	// DISTANCES are in mm
+	// Use 1/10 of a meter incremements?
+
+	cv::Scalar need1 = cv::Scalar(255, 0, 255);
+	cv::Scalar need2 = cv::Scalar(0, 0, 255);
+	cv::Scalar need3 = cv::Scalar(255, 0, 0);
 
 
+	pX = 100.0 * pose_estimate[0] / 1000.0;
+	pY = 100.0 * pose_estimate[1] / 1000.0;
+	pZ = 100.0 * pose_estimate[2] / 1000.0;
+
+	cv::Point humanPoint = cv::Point((int)pX, (int)pY);
+
+	cv::circle(top_view_image,
+        humanPoint,
+        5,
+        need2,
+        thickness=5,
+        cv::LINE_AA);
 
 }
 

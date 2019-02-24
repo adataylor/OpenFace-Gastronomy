@@ -113,6 +113,8 @@ namespace Utilities
 		cv::Mat aligned_face_image;
 		cv::Mat action_units_image;
 
+		cv::Mat top_view_image;
+
 		// Useful for drawing 3d
 		float fx, fy, cx, cy;
 
