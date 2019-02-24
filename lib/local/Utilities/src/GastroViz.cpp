@@ -279,9 +279,9 @@ void GastroViz::SetTopView(const cv::Vec6f& pose, double confidence, const std::
 	cv::Scalar need3 = cv::Scalar(255, 0, 0);
 
 
-	pX = 100.0 * pose_estimate[0] / 1000.0;
-	pY = 100.0 * pose_estimate[1] / 1000.0;
-	pZ = 100.0 * pose_estimate[2] / 1000.0;
+	float pX = 100.0 * pose[0] / 1000.0;
+	float pY = 100.0 * pose[1] / 1000.0;
+	float pZ = 100.0 * pose[2] / 1000.0;
 
 	cv::Point humanPoint = cv::Point((int)pX, (int)pY);
 
