@@ -275,20 +275,21 @@ void GastroViz::SetTopView(const cv::Vec6f& pose, double confidence, const std::
 	// Use 1/10 of a meter incremements?
 
 	cv::Scalar need1 = cv::Scalar(255, 0, 255);
+	// RED
 	cv::Scalar need2 = cv::Scalar(0, 0, 255);
 	cv::Scalar need3 = cv::Scalar(255, 0, 0);
 
 
-	float pX = 100.0 * pose[0] / 1000.0;
-	float pY = 100.0 * pose[1] / 1000.0;
-	float pZ = 100.0 * pose[2] / 1000.0;
+	float pX = 1000.0 * pose[0] / 1000.0;
+	float pY = 1000.0 * pose[1] / 1000.0;
+	float pZ = 1000.0 * pose[2] / 1000.0;
 
 	cv::Point humanPoint = cv::Point((int)pX, (int)pY);
 
 	cv::circle(top_view_image,
         humanPoint,
-        5,
-        need2,
+        10,
+        need1,
         5,
         cv::LINE_AA);
 
