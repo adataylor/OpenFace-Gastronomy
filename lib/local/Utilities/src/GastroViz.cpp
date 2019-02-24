@@ -494,7 +494,9 @@ char GastroViz::ShowObservation()
 	bool ovservation_shown = false;
 
 
+	if (!top_view_image.empty()) {
 	cv::imshow("Top View", top_view_image);
+	}
 
 	if (vis_align && !aligned_face_image.empty())
 	{
