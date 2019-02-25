@@ -278,7 +278,7 @@ void GastroViz::SetTopView(const cv::Vec6f& pose, double confidence, const std::
 	cv::Scalar need1 = cv::Scalar(255, 0, 255);
 	// RED
 	cv::Scalar need2 = cv::Scalar(0, 0, 255);
-
+	// BLUE
 	cv::Scalar need3 = cv::Scalar(255, 0, 0);
 
 
@@ -287,18 +287,18 @@ void GastroViz::SetTopView(const cv::Vec6f& pose, double confidence, const std::
 	float pZ = 1000.0 * pose[2] / 1000.0;
 
 	// Add padding to keep stuff on screen
-	pX = pX + 20;
-	pY = pY + 20;
-	pZ = pZ + 20;
+	pX = pX + 40;
+	pY = pY + 40;
+	pZ = pZ + 40;
 
-	cv::Point humanPoint = cv::Point((int)pX, (int)pY);
+	cv::Point humanPoint1 = cv::Point((int)pX, (int)pY);
+	cv::circle(top_view_image, humanPoint1, 10, need1, 5, cv::LINE_AA);
 
-	cv::circle(top_view_image,
-        humanPoint,
-        10,
-        need3,
-        5,
-        cv::LINE_AA);
+	cv::Point humanPoint2 = cv::Point((int)pX, (int)pZ);
+	cv::circle(top_view_image, humanPoint2, 10, need2, 5, cv::LINE_AA);
+
+	cv::Point humanPoint3 = cv::Point((int)pY, (int)pZ);
+	cv::circle(top_view_image, humanPoint3, 10, need3, 5, cv::LINE_AA);
 
 }
 
