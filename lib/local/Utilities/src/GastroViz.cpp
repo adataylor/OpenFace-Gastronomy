@@ -77,7 +77,7 @@ GastroViz::GastroViz(std::vector<std::string> arguments)
 	// By default not visualizing anything
 	// FALSE, by default we are visualizing AUs
 	// TODO check if also visualizing some other things	
-	this->vis_track = false;
+	this->vis_track = true;
 	this->vis_hog = false;
 	this->vis_align = false;
 	this->vis_aus = true;
@@ -135,6 +135,7 @@ void GastroViz::SetImage(const cv::Mat& canvas, float fx, float fy, float cx, fl
 	aligned_face_image = cv::Mat();
 	action_units_image = cv::Mat();
 
+	classifier_image = cv::Mat();
 	top_view_image = cv::Mat();
 
 }
@@ -234,6 +235,7 @@ void GastroViz::SetObservationPose(const cv::Vec6f& pose, double confidence)
 	}
 }
 
+
 void GastroViz::SetFeatures(const std::vector<std::pair<std::string, double> >& au_intensities,
 	const std::vector<std::pair<std::string, double> >& au_occurences)
 {
@@ -294,14 +296,148 @@ void GastroViz::SetTopView(const cv::Vec6f& pose, double confidence, const std::
 	cv::Point humanPoint1 = cv::Point((int)pX, (int)pY);
 	cv::circle(top_view_image, humanPoint1, 10, need1, 5, cv::LINE_AA);
 
-	cv::Point humanPoint2 = cv::Point((int)pX, (int)pZ);
-	cv::circle(top_view_image, humanPoint2, 10, need2, 5, cv::LINE_AA);
+	// cv::Point humanPoint2 = cv::Point((int)pX, (int)pZ);
+	// cv::circle(top_view_image, humanPoint2, 10, need2, 5, cv::LINE_AA);
 
-	cv::Point humanPoint3 = cv::Point((int)pY, (int)pZ);
-	cv::circle(top_view_image, humanPoint3, 10, need3, 5, cv::LINE_AA);
+	// cv::Point humanPoint3 = cv::Point((int)pY, (int)pZ);
+	// cv::circle(top_view_image, humanPoint3, 10, need3, 5, cv::LINE_AA);
 
 }
 
+
+void GastroViz::SetClassifier(const cv::Vec6f& pose, double confidence, const std::vector<std::pair<std::string, double> >& au_intensities,
+	const std::vector<std::pair<std::string, double> >& au_occurences)
+{
+	std::map<std::string, std::pair<bool, double>> aus;
+
+	std::set<std::string> au_names;
+	std::map<std::string, bool> occurences_map;
+	std::map<std::string, double> intensities_map;
+
+	const int AU_TRACKBAR_LENGTH = 400;
+	const int AU_TRACKBAR_HEIGHT = 10;
+
+	const int MARGIN_X = 185;
+	const int MARGIN_Y = 10;
+
+	const int nb_aus = (int) au_names.size();
+
+	if (au_intensities.size() <= 0 || au_occurences.size() <= 0)
+	{
+		return;
+	}
+
+	if (classifier_image.empty())
+	{
+		//To do, handle if multiple people
+		classifier_image = cv::Mat(2 * (AU_TRACKBAR_HEIGHT + 10) + MARGIN_Y * 2, AU_TRACKBAR_LENGTH + MARGIN_X, CV_8UC3, cv::Scalar(255, 255, 255));
+	}
+	else
+	{
+		classifier_image.setTo(255);
+	}
+	std::map<std::string, std::pair<bool, double>> classifications;
+
+	for (auto au_name : au_names)
+	{
+		// Insert the intensity and AU presense (as these do not always overlap check if they exist first)
+		bool occurence = false;
+		if (occurences_map.find(au_name) != occurences_map.end())
+		{
+			occurence = occurences_map[au_name] != 0;
+		}
+		else
+		{
+			// If we do not have an occurence label, trust the intensity one
+			occurence = intensities_map[au_name] > 1;
+		}
+		double intensity = 0.0;
+		if (intensities_map.find(au_name) != intensities_map.end())
+		{
+			intensity = intensities_map[au_name];
+		}
+		else
+		{
+			// If we do not have an intensity label, trust the occurence one
+			intensity = occurences_map[au_name] == 0 ? 0 : 5;
+		}
+
+		aus[au_name] = std::make_pair(occurence, intensity);
+	}
+
+
+
+
+
+
+	double neediness = 0;
+	double interruptibility = 0;
+
+	unsigned int idx = 0;
+	for (auto& cla : aus)
+	{
+		std::string name = cla.first;
+		bool present = cla.second.first;
+		double intensity = cla.second.second;
+
+		neediness = neediness + (intensity / 18.0);
+	}
+
+	interruptibility = 1 - neediness;//(3.0 - (intensities_map[AUS_DESCRIPTION[4]] + .5*intensities_map[AUS_DESCRIPTION[7]] + .5*intensities_map[AUS_DESCRIPTION[7]])) / 3.0;
+	
+	classifications["neediness"] = std::make_pair(neediness > 0 ? 1 : 0, neediness);
+	classifications["interruptibility"] = std::make_pair(interruptibility > 0 ? 1 : 0, interruptibility);
+
+	idx = 0;
+	std::string name = "Neediness";
+	bool present = neediness > 0 ? .5 : 0;
+	double intensity = neediness;
+
+	// ADD THESE METRICS TO THE GUI
+	int offset = MARGIN_Y + idx * (AU_TRACKBAR_HEIGHT + 10);
+	std::ostringstream au_i;
+	au_i << std::setprecision(2) << std::setw(4) << std::fixed << intensity;
+	cv::putText(classifier_image, name, cv::Point(10, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.5, CV_RGB(present ? 0 : 200, 0, 0), 1, cv::LINE_AA);
+	cv::putText(classifier_image, name, cv::Point(55, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(0, 0, 0), 1, cv::LINE_AA);
+
+	if (present)
+	{
+		cv::putText(classifier_image, au_i.str(), cv::Point(160, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(0, 100, 0), 1, cv::LINE_AA);
+		cv::rectangle(classifier_image, cv::Point(MARGIN_X, offset),
+			cv::Point((int)(MARGIN_X + AU_TRACKBAR_LENGTH * intensity / 5.0), offset + AU_TRACKBAR_HEIGHT),
+			cv::Scalar(128, 128, 128),
+			cv::FILLED);
+	}
+	else
+	{
+		cv::putText(classifier_image, "0.00", cv::Point(160, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(0, 0, 0), 1, cv::LINE_AA);
+	}
+
+	idx = 1;
+	name = "Interruptibility";
+	present = (interruptibility > 0) ? .5 : 0;
+	intensity = interruptibility;
+
+	offset = MARGIN_Y + idx * (AU_TRACKBAR_HEIGHT + 10);
+	au_i;
+	au_i << std::setprecision(2) << std::setw(4) << std::fixed << intensity;
+	cv::putText(classifier_image, name, cv::Point(10, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.5, CV_RGB(present ? 0 : 200, 0, 0), 1, cv::LINE_AA);
+	cv::putText(classifier_image, name, cv::Point(55, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(0, 0, 0), 1, cv::LINE_AA);
+
+	if (present)
+	{
+		cv::putText(classifier_image, au_i.str(), cv::Point(160, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(0, 100, 0), 1, cv::LINE_AA);
+		cv::rectangle(classifier_image, cv::Point(MARGIN_X, offset),
+			cv::Point((int)(MARGIN_X + AU_TRACKBAR_LENGTH * intensity / 5.0), offset + AU_TRACKBAR_HEIGHT),
+			cv::Scalar(128, 128, 128),
+			cv::FILLED);
+	}
+	else
+	{
+		cv::putText(classifier_image, "0.00", cv::Point(160, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(0, 0, 0), 1, cv::LINE_AA);
+	}
+
+}
 
 //Create separate window, and display a graph of all the currently visible action units
 void GastroViz::SetObservationActionUnits(const std::vector<std::pair<std::string, double> >& au_intensities,
@@ -503,7 +639,11 @@ char GastroViz::ShowObservation()
 
 
 	if (!top_view_image.empty()) {
-	cv::imshow("Top View", top_view_image);
+		cv::imshow("Top View", top_view_image);
+	}
+
+	if (!classifier_image.empty()) {
+		cv::imshow("Classifications", classifier_image);
 	}
 
 	if (vis_align && !aligned_face_image.empty())
