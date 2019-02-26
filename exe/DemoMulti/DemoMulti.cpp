@@ -14,19 +14,19 @@
 //       reports and manuals, must cite at least one of the following works:
 //
 //       OpenFace 2.0: Facial Behavior Analysis Toolkit
-//       Tadas Baltrušaitis, Amir Zadeh, Yao Chong Lim, and Louis-Philippe Morency
+//       Tadas Baltruï¿½aitis, Amir Zadeh, Yao Chong Lim, and Louis-Philippe Morency
 //       in IEEE International Conference on Automatic Face and Gesture Recognition, 2018  
 //
 //       Convolutional experts constrained local model for facial landmark detection.
-//       A. Zadeh, T. Baltrušaitis, and Louis-Philippe Morency,
+//       A. Zadeh, T. Baltruï¿½aitis, and Louis-Philippe Morency,
 //       in Computer Vision and Pattern Recognition Workshops, 2017.    
 //
 //       Rendering of Eyes for Eye-Shape Registration and Gaze Estimation
-//       Erroll Wood, Tadas Baltrušaitis, Xucong Zhang, Yusuke Sugano, Peter Robinson, and Andreas Bulling 
+//       Erroll Wood, Tadas Baltruï¿½aitis, Xucong Zhang, Yusuke Sugano, Peter Robinson, and Andreas Bulling 
 //       in IEEE International. Conference on Computer Vision (ICCV),  2015 
 //
 //       Cross-dataset learning and person-specific normalisation for automatic Action Unit detection
-//       Tadas Baltrušaitis, Marwa Mahmoud, and Peter Robinson 
+//       Tadas Baltruï¿½aitis, Marwa Mahmoud, and Peter Robinson 
 //       in Facial Expression Recognition and Analysis Challenge, 
 //       IEEE International Conference on Automatic Face and Gesture Recognition, 2015 
 //
@@ -349,13 +349,14 @@ int main(int argc, char **argv)
 					cv::Mat sim_warped_img;
 					cv::Mat_<double> hog_descriptor; int num_hog_rows = 0, num_hog_cols = 0;
 
+					// Ada: Removing the conditional because I always want this information if they have it
 					// Perform AU detection and HOG feature extraction, as this can be expensive only compute it if needed by output or visualization
-					if (recording_params.outputAlignedFaces() || recording_params.outputHOG() || recording_params.outputAUs() || GastroViz.vis_align || GastroViz.vis_hog)
-					{
+					// if (recording_params.outputAlignedFaces() || recording_params.outputHOG() || recording_params.outputAUs() || GastroViz.vis_align || GastroViz.vis_hog)
+					// {
 						face_analyser.PredictStaticAUsAndComputeFeatures(rgb_image, face_models[model].detected_landmarks);
 						face_analyser.GetLatestAlignedFace(sim_warped_img);
 						face_analyser.GetLatestHOG(hog_descriptor, num_hog_rows, num_hog_cols);
-					}
+					// }
 
 					// Visualize the features
 					GastroViz.SetObservationFaceAlign(sim_warped_img);
