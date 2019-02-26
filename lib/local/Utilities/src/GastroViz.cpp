@@ -322,6 +322,9 @@ void GastroViz::SetClassifier(int personId, int numPeople, const cv::Vec6f& pose
 
 	const int nb_aus = (int) au_names.size();
 
+	double neediness = 0;
+	double interruptibility = 0;
+
 	if (au_intensities.size() <= 0 || au_occurences.size() <= 0)
 	{
 		return;
@@ -362,49 +365,35 @@ void GastroViz::SetClassifier(int personId, int numPeople, const cv::Vec6f& pose
 			intensity = occurences_map[au_name] == 0 ? 0 : 5;
 		}
 
+		neediness = neediness + (intensity / 18.0);
+
 		aus[au_name] = std::make_pair(occurence, intensity);
 	}
 
 
-
-
-
-
-	double neediness = 0;
-	double interruptibility = 0;
-
-	unsigned int idx = 0;
-	for (auto& cla : aus)
-	{
-		std::string name = cla.first;
-		bool present = cla.second.first;
-		double intensity = cla.second.second;
-
-		neediness = neediness + (intensity / 18.0);
-	}
 
 	interruptibility = 1 - neediness;//(3.0 - (intensities_map[AUS_DESCRIPTION[4]] + .5*intensities_map[AUS_DESCRIPTION[7]] + .5*intensities_map[AUS_DESCRIPTION[7]])) / 3.0;
 	
 	classifications["neediness"] = std::make_pair(neediness > 0 ? 1 : 0, neediness);
 	classifications["interruptibility"] = std::make_pair(interruptibility > 0 ? 1 : 0, interruptibility);
 
-	idx = personId;
-	std::string name = "Neediness";
-	bool present = neediness > 0 ? .5 : 0;
-	double intensity = neediness;
+	int idx = personId;
+	std::string need_name = "Neediness " + std::to_string(personId + 1);
+	bool need_present = neediness > 0 ? .5 : 0;
+	double need_intensity = neediness;
 
 	// ADD THESE METRICS TO THE GUI
 	int offset = MARGIN_Y + idx * (AU_TRACKBAR_HEIGHT + 10);
 	std::ostringstream au_i;
-	au_i << std::setprecision(2) << std::setw(4) << std::fixed << intensity;
-	cv::putText(classifier_image, name, cv::Point(10, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.5, CV_RGB(present ? 0 : 200, 0, 0), 1, cv::LINE_AA);
-	cv::putText(classifier_image, name, cv::Point(55, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(0, 0, 0), 1, cv::LINE_AA);
+	au_i << std::setprecision(2) << std::setw(4) << std::fixed << need_intensity;
+	cv::putText(classifier_image, need_name, cv::Point(10, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.5, CV_RGB(need_present ? 0 : 200, 0, 0), 1, cv::LINE_AA);
+	//cv::putText(classifier_image, need_name, cv::Point(55, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(0, 0, 0), 1, cv::LINE_AA);
 
-	if (present)
+	if (need_present)
 	{
 		cv::putText(classifier_image, au_i.str(), cv::Point(160, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(0, 100, 0), 1, cv::LINE_AA);
 		cv::rectangle(classifier_image, cv::Point(MARGIN_X, offset),
-			cv::Point((int)(MARGIN_X + AU_TRACKBAR_LENGTH * intensity / 5.0), offset + AU_TRACKBAR_HEIGHT),
+			cv::Point((int)(MARGIN_X + AU_TRACKBAR_LENGTH * need_intensity / 5.0), offset + AU_TRACKBAR_HEIGHT),
 			cv::Scalar(128, 128, 128),
 			cv::FILLED);
 	}
@@ -414,21 +403,22 @@ void GastroViz::SetClassifier(int personId, int numPeople, const cv::Vec6f& pose
 	}
 
 	idx = personId + 1;
-	name = "Interruptibility";
-	present = (interruptibility > 0) ? .5 : 0;
-	intensity = interruptibility;
+	std::string interrupt_name = "Interruptibility " + std::to_string(personId + 1);
+	bool interrupt_present = (interruptibility > 0) ? .5 : 0;
+	
+	bool interrupt_intensity = interruptibility;
 
 	offset = MARGIN_Y + idx * (AU_TRACKBAR_HEIGHT + 10);
 	au_i;
-	au_i << std::setprecision(2) << std::setw(4) << std::fixed << intensity;
-	cv::putText(classifier_image, name, cv::Point(10, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.5, CV_RGB(present ? 0 : 200, 0, 0), 1, cv::LINE_AA);
-	cv::putText(classifier_image, name, cv::Point(55, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(0, 0, 0), 1, cv::LINE_AA);
+	au_i << std::setprecision(2) << std::setw(4) << std::fixed << interrupt_intensity;
+	cv::putText(classifier_image, interrupt_name, cv::Point(10, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.5, CV_RGB(interrupt_present ? 0 : 200, 0, 0), 1, cv::LINE_AA);
+	//cv::putText(classifier_image, interrupt_name, cv::Point(55, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(0, 0, 0), 1, cv::LINE_AA);
 
-	if (present)
+	if (interrupt_present)
 	{
 		cv::putText(classifier_image, au_i.str(), cv::Point(160, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(0, 100, 0), 1, cv::LINE_AA);
 		cv::rectangle(classifier_image, cv::Point(MARGIN_X, offset),
-			cv::Point((int)(MARGIN_X + AU_TRACKBAR_LENGTH * intensity / 5.0), offset + AU_TRACKBAR_HEIGHT),
+			cv::Point((int)(MARGIN_X + AU_TRACKBAR_LENGTH * interrupt_intensity / 5.0), offset + AU_TRACKBAR_HEIGHT),
 			cv::Scalar(128, 128, 128),
 			cv::FILLED);
 	}
