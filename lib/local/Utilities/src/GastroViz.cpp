@@ -305,7 +305,7 @@ void GastroViz::SetTopView(const cv::Vec6f& pose, double confidence, const std::
 }
 
 
-void GastroViz::SetClassifier(const cv::Vec6f& pose, double confidence, const std::vector<std::pair<std::string, double> >& au_intensities,
+void GastroViz::SetClassifier(int personId, int numPeople, const cv::Vec6f& pose, double confidence, const std::vector<std::pair<std::string, double> >& au_intensities,
 	const std::vector<std::pair<std::string, double> >& au_occurences)
 {
 	std::map<std::string, std::pair<bool, double>> aus;
@@ -330,7 +330,7 @@ void GastroViz::SetClassifier(const cv::Vec6f& pose, double confidence, const st
 	if (classifier_image.empty())
 	{
 		//To do, handle if multiple people
-		classifier_image = cv::Mat(2 * (AU_TRACKBAR_HEIGHT + 10) + MARGIN_Y * 2, AU_TRACKBAR_LENGTH + MARGIN_X, CV_8UC3, cv::Scalar(255, 255, 255));
+		classifier_image = cv::Mat(2 * numPeople * (AU_TRACKBAR_HEIGHT + 10) + MARGIN_Y * 2, AU_TRACKBAR_LENGTH + MARGIN_X, CV_8UC3, cv::Scalar(255, 255, 255));
 	}
 	else
 	{
@@ -388,7 +388,7 @@ void GastroViz::SetClassifier(const cv::Vec6f& pose, double confidence, const st
 	classifications["neediness"] = std::make_pair(neediness > 0 ? 1 : 0, neediness);
 	classifications["interruptibility"] = std::make_pair(interruptibility > 0 ? 1 : 0, interruptibility);
 
-	idx = 0;
+	idx = personId;
 	std::string name = "Neediness";
 	bool present = neediness > 0 ? .5 : 0;
 	double intensity = neediness;
@@ -413,7 +413,7 @@ void GastroViz::SetClassifier(const cv::Vec6f& pose, double confidence, const st
 		cv::putText(classifier_image, "0.00", cv::Point(160, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(0, 0, 0), 1, cv::LINE_AA);
 	}
 
-	idx = 1;
+	idx = personId + 1;
 	name = "Interruptibility";
 	present = (interruptibility > 0) ? .5 : 0;
 	intensity = interruptibility;
