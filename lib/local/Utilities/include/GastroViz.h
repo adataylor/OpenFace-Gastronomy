@@ -75,7 +75,8 @@ namespace Utilities
 		void SetTopView(const cv::Vec6f& pose, double confidence, const std::vector<std::pair<std::string, double> >& au_intensities,
 	const std::vector<std::pair<std::string, double> >& au_occurences);
 
-		void SetClassifier(int personId, int numPeople, const cv::Vec6f& pose, double confidence, const std::vector<std::pair<std::string, double> >& au_intensities,
+		void ClearClassifier(int numPeople);
+		void SetClassifier(bool newSet, int personId, int numPeople, const cv::Vec6f& pose, double confidence, const std::vector<std::pair<std::string, double> >& au_intensities,
 	const std::vector<std::pair<std::string, double> >& au_occurences);
 
 
@@ -106,6 +107,7 @@ namespace Utilities
 		bool vis_aus;
 
 		// Can be adjusted to show less confident frames
+		// Todo: decreased to still show less-confident frames
 		double visualisation_boundary = 0.4;
 
 	private:

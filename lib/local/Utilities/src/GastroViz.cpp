@@ -239,7 +239,7 @@ void GastroViz::SetObservationPose(const cv::Vec6f& pose, double confidence)
 void GastroViz::SetFeatures(const std::vector<std::pair<std::string, double> >& au_intensities,
 	const std::vector<std::pair<std::string, double> >& au_occurences)
 {
-
+	
 
 
 	
@@ -270,7 +270,7 @@ void GastroViz::SetTopView(const cv::Vec6f& pose, double confidence, const std::
 {
 	if (top_view_image.empty())
 	{
-		top_view_image = cv::Mat(300, 300, CV_8UC3, cv::Scalar(255, 255, 255));
+		top_view_image = cv::Mat(240, 320, CV_8UC3, cv::Scalar(255, 255, 255));
 	}
 
 	// DISTANCES are in mm
@@ -293,43 +293,25 @@ void GastroViz::SetTopView(const cv::Vec6f& pose, double confidence, const std::
 	pY = pY + 40;
 	pZ = pZ + 40;
 
-	cv::Point humanPoint1 = cv::Point((int)pX, (int)pY);
-	cv::circle(top_view_image, humanPoint1, 10, need1, 5, cv::LINE_AA);
+	// cv::Point humanPoint1 = cv::Point((int)pX, (int)pY);
+	// cv::circle(top_view_image, humanPoint1, 10, need1, 5, cv::LINE_AA);
 
-	// cv::Point humanPoint2 = cv::Point((int)pX, (int)pZ);
+	// cv::Point humanPoint2 = cv::Point((int)fx, (int)fy);
 	// cv::circle(top_view_image, humanPoint2, 10, need2, 5, cv::LINE_AA);
 
-	// cv::Point humanPoint3 = cv::Point((int)pY, (int)pZ);
-	// cv::circle(top_view_image, humanPoint3, 10, need3, 5, cv::LINE_AA);
+	cv::Point humanPoint3 = cv::Point((int)(cx/2.0 + pose[0]), (int)(cy/2.0));
+	cv::circle(top_view_image, humanPoint3, 10, need3, 5, cv::LINE_AA);
 
 }
 
-
-void GastroViz::SetClassifier(int personId, int numPeople, const cv::Vec6f& pose, double confidence, const std::vector<std::pair<std::string, double> >& au_intensities,
-	const std::vector<std::pair<std::string, double> >& au_occurences)
+void GastroViz::ClearClassifier(int numPeople)
 {
-	std::map<std::string, std::pair<bool, double>> aus;
-
-	std::set<std::string> au_names;
-	std::map<std::string, bool> occurences_map;
-	std::map<std::string, double> intensities_map;
-
 	const int AU_TRACKBAR_LENGTH = 400;
 	const int AU_TRACKBAR_HEIGHT = 10;
 
 	const int MARGIN_X = 185;
 	const int MARGIN_Y = 10;
-
-	const int nb_aus = (int) au_names.size();
-
-	double neediness = 0;
-	double interruptibility = 0;
-
-	if (au_intensities.size() <= 0 || au_occurences.size() <= 0)
-	{
-		return;
-	}
-
+	
 	if (classifier_image.empty())
 	{
 		//To do, handle if multiple people
@@ -339,6 +321,45 @@ void GastroViz::SetClassifier(int personId, int numPeople, const cv::Vec6f& pose
 	{
 		classifier_image.setTo(255);
 	}
+
+}
+
+
+void GastroViz::SetClassifier(bool newSet, int personId, int numPeople, const cv::Vec6f& pose, double confidence, const std::vector<std::pair<std::string, double> >& au_intensities,
+	const std::vector<std::pair<std::string, double> >& au_occurences)
+{
+	const int AU_TRACKBAR_LENGTH = 400;
+	const int AU_TRACKBAR_HEIGHT = 10;
+
+	const int MARGIN_X = 185;
+	const int MARGIN_Y = 10;
+
+	std::map<std::string, std::pair<bool, double>> aus;
+
+	std::set<std::string> au_names;
+	std::map<std::string, bool> occurences_map;
+	std::map<std::string, double> intensities_map;
+
+	const int nb_aus = (int) au_names.size();
+
+	double neediness = 0;
+	double interruptibility = 0;
+
+	if (classifier_image.empty())
+	{
+		//To do, handle if multiple people
+		classifier_image = cv::Mat(2 * numPeople * (AU_TRACKBAR_HEIGHT + 10) + MARGIN_Y * 2, AU_TRACKBAR_LENGTH + MARGIN_X, CV_8UC3, cv::Scalar(255, 255, 255));
+	}
+	else if (newSet)
+	{
+		classifier_image.setTo(255);
+	}
+
+	if (au_intensities.size() <= 0 || au_occurences.size() <= 0)
+	{
+		return;
+	}
+
 	std::map<std::string, std::pair<bool, double>> classifications;
 
 	for (auto au_name : au_names)
@@ -377,7 +398,7 @@ void GastroViz::SetClassifier(int personId, int numPeople, const cv::Vec6f& pose
 	classifications["neediness"] = std::make_pair(neediness > 0 ? 1 : 0, neediness);
 	classifications["interruptibility"] = std::make_pair(interruptibility > 0 ? 1 : 0, interruptibility);
 
-	int idx = personId;
+	int idx = (2 * personId);
 	std::string need_name = "Neediness " + std::to_string(personId + 1);
 	bool need_present = neediness > 0 ? .5 : 0;
 	double need_intensity = neediness;
@@ -402,7 +423,7 @@ void GastroViz::SetClassifier(int personId, int numPeople, const cv::Vec6f& pose
 		cv::putText(classifier_image, "0.00", cv::Point(160, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(0, 0, 0), 1, cv::LINE_AA);
 	}
 
-	idx = personId + 1;
+	idx = (2 * personId) + 1;
 	std::string interrupt_name = "Interruptibility " + std::to_string(personId + 1);
 	bool interrupt_present = (interruptibility > 0) ? .5 : 0;
 	

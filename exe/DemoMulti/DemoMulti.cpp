@@ -325,6 +325,8 @@ int main(int argc, char **argv)
 			// VIZ set the image
 			GastroViz.SetImage(rgb_image, sequence_reader.fx, sequence_reader.fy, sequence_reader.cx, sequence_reader.cy);
 
+			bool shouldReset = true;
+
 			// Go through every model and detect eye gaze, record results and visualise the results
 			for (size_t model = 0; model < face_models.size(); ++model)
 			{
@@ -366,7 +368,11 @@ int main(int argc, char **argv)
 					GastroViz.SetObservationGaze(gaze_direction0, gaze_direction1, LandmarkDetector::CalculateAllEyeLandmarks(face_models[model]), LandmarkDetector::Calculate3DEyeLandmarks(face_models[model], sequence_reader.fx, sequence_reader.fy, sequence_reader.cx, sequence_reader.cy), face_models[model].detection_certainty);
 					GastroViz.SetObservationActionUnits(face_analyser.GetCurrentAUsReg(), face_analyser.GetCurrentAUsClass());
 
-					GastroViz.SetClassifier(model, face_models.size(), LandmarkDetector::GetPose(face_models[model], sequence_reader.fx, sequence_reader.fy, sequence_reader.cx, sequence_reader.cy), face_models[model].detection_certainty, face_analyser.GetCurrentAUsReg(), face_analyser.GetCurrentAUsClass());
+	
+					// TODO check if still want to show classifications for people offscreen
+					// Currently will only display for "active" models
+					GastroViz.SetClassifier(shouldReset, model, face_models.size(), LandmarkDetector::GetPose(face_models[model], sequence_reader.fx, sequence_reader.fy, sequence_reader.cx, sequence_reader.cy), face_models[model].detection_certainty, face_analyser.GetCurrentAUsReg(), face_analyser.GetCurrentAUsClass());
+					shouldReset = false;
 					GastroViz.SetTopView(LandmarkDetector::GetPose(face_models[model], sequence_reader.fx, sequence_reader.fy, sequence_reader.cx, sequence_reader.cy), face_models[model].detection_certainty, face_analyser.GetCurrentAUsReg(), face_analyser.GetCurrentAUsClass());
 
 					// Output features
