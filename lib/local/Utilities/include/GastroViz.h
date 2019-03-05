@@ -128,6 +128,10 @@ namespace Utilities
 		cv::Mat top_view_image;
 		cv::Mat graph_image;
 
+		float need_smooth;
+		float interrupt_smooth;
+		int smooth_window = 10;
+
 		std::vector<std::vector<float>> needLog;
 		std::vector<std::vector<float>> interruptLog;
 
