@@ -480,42 +480,78 @@ void GastroViz::SetClassifier(bool newSet, int personId, int numPeople, const cv
 	cv::Matx33f rot = Euler2RotationMatrix(cv::Vec3f(pose[3], pose[4], pose[5]));
 	cv::Vec3f rpy = RotationMatrix2Euler(rot);
 
-	//interruptibility = pow(rpy[0] - old_pose[0], 2) + pow(rpy[1] - old_pose[1], 2) + pow(rpy[2] - old_pose[2], 2);
-	float new_interrupt = neediness;
-	old_pose = rpy;
-	classifications["interruptibility"] = std::make_pair(new_interrupt > 0 ? 1 : 0, new_interrupt);
+	// //interruptibility = pow(rpy[0] - old_pose[0], 2) + pow(rpy[1] - old_pose[1], 2) + pow(rpy[2] - old_pose[2], 2);
+	// float new_interrupt = neediness;
+	// old_pose = rpy;
+	// classifications["interruptibility"] = std::make_pair(new_interrupt > 0 ? 1 : 0, new_interrupt);
 
-	std::string interrupt_name = "Interruptibility " + std::to_string(personId + 1);
-	bool interrupt_present = (new_interrupt > 0) ? .5 : 0;
+	// std::string interrupt_name = "Interruptibility " + std::to_string(personId + 1);
+	// bool interrupt_present = (new_interrupt > 0) ? .5 : 0;
 	
-	bool interrupt_intensity = new_interrupt;
+	// bool interrupt_intensity = new_interrupt;
 
-	cv::Scalar interrupt_color = interrupt_color_level_0;
-	if (interrupt_intensity > .8) {interrupt_color = interrupt_color_level_4;}
-	else if (interrupt_intensity > .6) {interrupt_color = interrupt_color_level_3;}
-	else if (interrupt_intensity > .4) {interrupt_color = interrupt_color_level_2;}
-	else if (interrupt_intensity > .2) {interrupt_color = interrupt_color_level_1;}
-	else if (interrupt_intensity > 0) {interrupt_color = interrupt_color_level_0;}
+	// cv::Scalar interrupt_color = interrupt_color_level_0;
+	// if (interrupt_intensity > .8) {interrupt_color = interrupt_color_level_4;}
+	// else if (interrupt_intensity > .6) {interrupt_color = interrupt_color_level_3;}
+	// else if (interrupt_intensity > .4) {interrupt_color = interrupt_color_level_2;}
+	// else if (interrupt_intensity > .2) {interrupt_color = interrupt_color_level_1;}
+	// else if (interrupt_intensity > 0) {interrupt_color = interrupt_color_level_0;}
 
 
-	offset = MARGIN_Y + idx * (AU_TRACKBAR_HEIGHT + 10);
+	// offset = MARGIN_Y + idx * (AU_TRACKBAR_HEIGHT + 10);
+	// std::ostringstream au_i_interrupt;
+	// au_i_interrupt << std::setprecision(3) << std::setw(4) << std::fixed << interrupt_intensity;
+	// cv::putText(classifier_image, interrupt_name, cv::Point(10, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.5, CV_RGB(interrupt_present ? 0 : 200, 0, 0), 1, cv::LINE_AA);
+	// //cv::putText(classifier_image, interrupt_name, cv::Point(55, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(0, 0, 0), 1, cv::LINE_AA);
+
+	// if (interrupt_present)
+	// {
+	// 	cv::putText(classifier_image, au_i_interrupt.str(), cv::Point(160, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(0, 100, 0), 1, cv::LINE_AA);
+	// 	cv::rectangle(classifier_image, cv::Point(MARGIN_X, offset),
+	// 		cv::Point((int)(MARGIN_X + AU_TRACKBAR_LENGTH * (interrupt_intensity / 5.0)), offset + AU_TRACKBAR_HEIGHT),
+	// 		interrupt_color,
+	// 		cv::FILLED);
+	// }
+	// else
+	// {
+	// 	cv::putText(classifier_image, "0.00", cv::Point(160, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(0, 0, 0), 1, cv::LINE_AA);
+	// }
+
+	double interrupt_raw = pow(rpy[0] - old_pose[0], 2) + pow(rpy[1] - old_pose[1], 2) + pow(rpy[2] - old_pose[2], 2);
+	old_pose = rpy;
+
+	int idx2 = (2 * personId) + 1;
+	std::string interrupt_name = "Interruptibility " + std::to_string(personId + 1);
+	bool interrupt_present = interrupt_raw > 0 ? .5 : 0;
+	double interrupt_intensity = interrupt_raw * 3.0;
+
+	cv::Scalar interrupt_color = color_level_0;
+	if (interrupt_intensity > .8) {interrupt_color = color_level_4;}
+	else if (interrupt_intensity > .6) {interrupt_color = color_level_3;}
+	else if (interrupt_intensity > .4) {interrupt_color = color_level_2;}
+	else if (interrupt_intensity > .2) {interrupt_color = color_level_1;}
+	else if (interrupt_intensity > .0) {interrupt_color = color_level_0;}
+
+	// ADD THESE METRICS TO THE GUI
+	int offset_interrupt = MARGIN_Y + idx2 * (AU_TRACKBAR_HEIGHT + 10);
 	std::ostringstream au_i_interrupt;
-	au_i_interrupt << std::setprecision(3) << std::setw(4) << std::fixed << interrupt_intensity;
-	cv::putText(classifier_image, interrupt_name, cv::Point(10, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.5, CV_RGB(interrupt_present ? 0 : 200, 0, 0), 1, cv::LINE_AA);
-	//cv::putText(classifier_image, interrupt_name, cv::Point(55, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(0, 0, 0), 1, cv::LINE_AA);
+	au_i_interrupt << std::setprecision(2) << std::setw(4) << std::fixed << interrupt_intensity;
+	cv::putText(classifier_image, interrupt_name, cv::Point(10, offset_interrupt + 10), cv::FONT_HERSHEY_SIMPLEX, 0.5, CV_RGB(need_present ? 0 : 200, 0, 0), 1, cv::LINE_AA);
+	//cv::putText(classifier_image, need_name, cv::Point(55, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(0, 0, 0), 1, cv::LINE_AA);
 
 	if (interrupt_present)
 	{
-		cv::putText(classifier_image, au_i_interrupt.str(), cv::Point(160, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(0, 100, 0), 1, cv::LINE_AA);
-		cv::rectangle(classifier_image, cv::Point(MARGIN_X, offset),
-			cv::Point((int)(MARGIN_X + AU_TRACKBAR_LENGTH * (interrupt_intensity / 5.0)), offset + AU_TRACKBAR_HEIGHT),
+		cv::putText(classifier_image, au_i_interrupt.str(), cv::Point(160, offset_interrupt + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(0, 100, 0), 1, cv::LINE_AA);
+		cv::rectangle(classifier_image, cv::Point(MARGIN_X, offset_interrupt),
+			cv::Point((int)(MARGIN_X + AU_TRACKBAR_LENGTH * interrupt_intensity), offset_interrupt + AU_TRACKBAR_HEIGHT),
 			interrupt_color,
 			cv::FILLED);
 	}
 	else
 	{
-		cv::putText(classifier_image, "0.00", cv::Point(160, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(0, 0, 0), 1, cv::LINE_AA);
+		cv::putText(classifier_image, "0.00", cv::Point(160, offset_interrupt + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(0, 0, 0), 1, cv::LINE_AA);
 	}
+
 
 	// Log for future use and potential graph
 	// needLog[personId].push_back(neediness);
