@@ -164,7 +164,7 @@ void GastroViz::SetImage(const cv::Mat& canvas, float fx, float fy, float cx, fl
 	action_units_image = cv::Mat();
 
 	classifier_image = cv::Mat();
-	top_view_image = cv::Mat();
+	//top_view_image = cv::Mat();
 	graph_image = cv::Mat();
 }
 
@@ -385,7 +385,7 @@ void GastroViz::SetClassifier(bool newSet, int personId, int numPeople, const cv
 	}
 
 	double neediness = 0;
-	double interruptibility = 0;
+	// double interruptibility = 0;
 
 	if (classifier_image.empty())
 	{
@@ -404,6 +404,7 @@ void GastroViz::SetClassifier(bool newSet, int personId, int numPeople, const cv
 
 	std::map<std::string, std::pair<bool, double>> classifications;
 
+	neediness = 0;
 	for (auto au_name : au_names)
 	{
 		// Insert the intensity and AU presense (as these do not always overlap check if they exist first)
@@ -441,12 +442,11 @@ void GastroViz::SetClassifier(bool newSet, int personId, int numPeople, const cv
 	//(3.0 - (intensities_map[AUS_DESCRIPTION[4]] + .5*intensities_map[AUS_DESCRIPTION[7]] + .5*intensities_map[AUS_DESCRIPTION[7]])) / 3.0;
 	
 	classifications["neediness"] = std::make_pair(neediness > 0 ? 1 : 0, neediness);
-	classifications["interruptibility"] = std::make_pair(interruptibility > 0 ? 1 : 0, interruptibility);
 
 	int idx = (2 * personId);
 	std::string need_name = "Neediness " + std::to_string(personId + 1);
 	bool need_present = neediness > 0 ? .5 : 0;
-	double need_intensity = neediness;
+	double need_intensity = neediness * 3.0;
 
 	cv::Scalar need_color = color_level_0;
 	if (need_intensity > .8) {need_color = color_level_4;}
@@ -481,14 +481,14 @@ void GastroViz::SetClassifier(bool newSet, int personId, int numPeople, const cv
 	cv::Vec3f rpy = RotationMatrix2Euler(rot);
 
 	//interruptibility = pow(rpy[0] - old_pose[0], 2) + pow(rpy[1] - old_pose[1], 2) + pow(rpy[2] - old_pose[2], 2);
-	interruptibility = 2 - (neediness / 3.0);
-	float new_interrupt = 2 - (neediness / 2.0);
+	float new_interrupt = neediness;
 	old_pose = rpy;
+	classifications["interruptibility"] = std::make_pair(new_interrupt > 0 ? 1 : 0, new_interrupt);
 
 	std::string interrupt_name = "Interruptibility " + std::to_string(personId + 1);
 	bool interrupt_present = (new_interrupt > 0) ? .5 : 0;
 	
-	bool interrupt_intensity = need_intensity * .8;
+	bool interrupt_intensity = new_interrupt;
 
 	cv::Scalar interrupt_color = interrupt_color_level_0;
 	if (interrupt_intensity > .8) {interrupt_color = interrupt_color_level_4;}
@@ -528,35 +528,6 @@ void GastroViz::SetClassifier(bool newSet, int personId, int numPeople, const cv
 	// plot->render(graph_image);
 	// cv::imshow( "Need Log", graph_image );
 
-
-	// TODO put in own section
-	if (top_view_image.empty())
-	{
-		top_view_image = cv::Mat(300, 300, CV_8UC3, cv::Scalar(255, 255, 255));
-	}
-
-	// DISTANCES are in mm
-	// Use 1/10 of a meter incremements?
-
-	// PINK
-	cv::Scalar need1 = cv::Scalar(255, 0, 255);
-	// RED
-	cv::Scalar need2 = cv::Scalar(0, 0, 255);
-	// BLUE
-	cv::Scalar need3 = cv::Scalar(255, 0, 0);
-
-
-	float pX = 2.5 * 1000.0 * pose[0] / 1000.0;
-	float pY = 2.5 * 1000.0 * pose[1] / 1000.0;
-	float pZ = 2.5 * 1000.0 * pose[2] / 1000.0;
-
-	// Add padding to keep stuff on screen
-	pX = pX + 40;
-	pY = pY + 40;
-	pZ = pZ + 40;
-
-	cv::Point humanPoint3 = cv::Point((int)(cx/2.0 + pose[0]), (int)(cy/2.0));
-	cv::circle(top_view_image, humanPoint3, 10, need_color, 5, cv::LINE_AA);
 
 }
 
@@ -758,13 +729,12 @@ char GastroViz::ShowObservation()
 {
 	bool ovservation_shown = false;
 
-
-	if (!top_view_image.empty()) {
-		cv::imshow("Top View", top_view_image);
-	}
+	// if (!top_view_image.empty()) {
+	// 	cv::imshow("Top View", top_view_image);
+	// }
 
 	if (!classifier_image.empty()) {
-		cv::imshow("Classifications", classifier_image);
+		cv::imshow("Interaction Classifications", classifier_image);
 	}
 
 	if (vis_align && !aligned_face_image.empty())
