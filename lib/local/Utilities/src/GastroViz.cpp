@@ -467,12 +467,26 @@ void GastroViz::SetClassifier(bool newSet, int personId, int numPeople, const cv
 		aus[au_name] = std::make_pair(occurence, intensity);
 	}
 
+	// INTERRUPT PREWORK
+	cv::Matx33f rot = Euler2RotationMatrix(cv::Vec3f(pose[3], pose[4], pose[5]));
+	cv::Vec3f rpy = RotationMatrix2Euler(rot);
+
+	double interrupt_raw = pow(rpy[0] - old_pose[0], 2) + pow(rpy[1] - old_pose[1], 2) + pow(rpy[2] - old_pose[2], 2);
+	interrupt_raw = interrupt_raw / 16.0;
+	old_pose = rpy;
 
 
-	//interruptibility = (pow(1.0 * pose[4] - old_pose[4], 2) + pow(1.0 * pose[5] - old_pose[5], 2) + pow(1.0 * pose[6] - old_pose[6], 2)); 
-	
-	//(3.0 - (intensities_map[AUS_DESCRIPTION[4]] + .5*intensities_map[AUS_DESCRIPTION[7]] + .5*intensities_map[AUS_DESCRIPTION[7]])) / 3.0;
-	
+	// HARSH CHECKS ON UPPER BOUNDS
+	if (neediness > 1) 		{	neediness = 1;	}
+	if (interrupt_raw > 1) 	{	interrupt_raw = 1;	}
+
+	if (neediness < 0) 		{	neediness = 0;	}
+	if (interrupt_raw < 0) 	{	interrupt_raw = 0;	}
+
+
+
+
+
 	classifications["neediness"] = std::make_pair(neediness > 0 ? 1 : 0, neediness);
 
 	int idx = (2 * personId);
@@ -508,13 +522,6 @@ void GastroViz::SetClassifier(bool newSet, int personId, int numPeople, const cv
 	}
 
 	// INTERRUPTION POSTING
-	idx = (2 * personId) + 1;
-	cv::Matx33f rot = Euler2RotationMatrix(cv::Vec3f(pose[3], pose[4], pose[5]));
-	cv::Vec3f rpy = RotationMatrix2Euler(rot);
-
-	double interrupt_raw = pow(rpy[0] - old_pose[0], 2) + pow(rpy[1] - old_pose[1], 2) + pow(rpy[2] - old_pose[2], 2);
-	interrupt_raw = interrupt_raw / 16.0;
-	old_pose = rpy;
 
 	int idx2 = (2 * personId) + 1;
 	std::string interrupt_name = "Interruptibility " + std::to_string(personId + 1);
