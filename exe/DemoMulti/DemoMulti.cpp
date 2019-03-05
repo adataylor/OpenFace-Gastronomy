@@ -127,7 +127,6 @@ int main(int argc, char **argv)
 	// The modules that are being used for tracking
 	vector<LandmarkDetector::CLNF> face_models;
 	vector<bool> active_models;
-
 	int num_faces_max = 4;
 
 	LandmarkDetector::CLNF face_model(det_parameters[0].model_location);

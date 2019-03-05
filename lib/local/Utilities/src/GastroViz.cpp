@@ -41,6 +41,9 @@
 #include <map>
 #include <set>
 
+// For plotting data
+//#include <opencv2/plot.hpp>
+
 // For drawing on images
 #include <opencv2/imgproc.hpp>
 
@@ -70,6 +73,21 @@ const std::map<std::string, std::string> AUS_DESCRIPTION = {
 	{ "AU28", "Lip Suck            " },
 	{ "AU45", "Blink               " },
 };
+
+cv::Scalar color_level_none = cv::Scalar(0, 0, 0);
+cv::Scalar color_level_0 = cv::Scalar(63, 191, 0);
+cv::Scalar color_level_1 = cv::Scalar(141, 191, 0);
+cv::Scalar color_level_2 = cv::Scalar(191, 162, 0);
+cv::Scalar color_level_3 = cv::Scalar(191, 85, 0);
+cv::Scalar color_level_4 = cv::Scalar(191, 7, 0);
+
+cv::Scalar interrupt_color_level_none = cv::Scalar(0, 0, 100);
+cv::Scalar interrupt_color_level_0 = cv::Scalar(63, 191, 75);
+cv::Scalar interrupt_color_level_1 = cv::Scalar(141, 191, 75);
+cv::Scalar interrupt_color_level_2 = cv::Scalar(191, 162, 75);
+cv::Scalar interrupt_color_level_3 = cv::Scalar(191, 85, 75);
+cv::Scalar interrupt_color_level_4 = cv::Scalar(191, 7, 75);
+
 
 // Set up the GastroViz instance
 GastroViz::GastroViz(std::vector<std::string> arguments)
@@ -137,7 +155,7 @@ void GastroViz::SetImage(const cv::Mat& canvas, float fx, float fy, float cx, fl
 
 	classifier_image = cv::Mat();
 	top_view_image = cv::Mat();
-
+	graph_image = cv::Mat();
 }
 
 
@@ -251,10 +269,11 @@ void GastroViz::SetNeediness(const std::vector<std::pair<std::string, double> >&
 
 //Radius point should be proportional to head size
 cv::Scalar pointColor0 = cv::Scalar(0, 0, 255);
-cv::Scalar pointColor1 = cv::Scalar(0, 255, 255);
-cv::Scalar pointColor2 = cv::Scalar(255, 0, 255);
-cv::Scalar pointColor3 = cv::Scalar(0, 255, 0);
-cv::Scalar pointColor4 = cv::Scalar(255, 0, 0);
+cv::Scalar pointColor1 = cv::Scalar(0, 0, 255);
+cv::Scalar pointColor2 = cv::Scalar(0, 255, 255);
+cv::Scalar pointColor3 = cv::Scalar(255, 0, 255);
+cv::Scalar pointColor4 = cv::Scalar(0, 255, 0);
+cv::Scalar pointColor5 = cv::Scalar(255, 0, 0);
 
 cv::Scalar indicatorColor = pointColor3;
 
@@ -268,10 +287,10 @@ cv::Scalar indicatorColor = pointColor3;
 void GastroViz::SetTopView(const cv::Vec6f& pose, double confidence, const std::vector<std::pair<std::string, double> >& au_intensities,
 	const std::vector<std::pair<std::string, double> >& au_occurences)
 {
-	if (top_view_image.empty())
-	{
-		top_view_image = cv::Mat(240, 320, CV_8UC3, cv::Scalar(255, 255, 255));
-	}
+	// if (top_view_image.empty())
+	// {
+	// 	top_view_image = cv::Mat(240, 320, CV_8UC3, cv::Scalar(255, 255, 255));
+	// }
 
 	// DISTANCES are in mm
 	// Use 1/10 of a meter incremements?
@@ -281,17 +300,17 @@ void GastroViz::SetTopView(const cv::Vec6f& pose, double confidence, const std::
 	// RED
 	cv::Scalar need2 = cv::Scalar(0, 0, 255);
 	// BLUE
-	cv::Scalar need3 = cv::Scalar(255, 0, 0);
+ 	cv::Scalar need3 = cv::Scalar(255, 0, 0);
 
 
-	float pX = 1000.0 * pose[0] / 1000.0;
-	float pY = 1000.0 * pose[1] / 1000.0;
-	float pZ = 1000.0 * pose[2] / 1000.0;
+// 	float pX = 1000.0 * pose[0] / 1000.0;
+// 	float pY = 1000.0 * pose[1] / 1000.0;
+// 	float pZ = 1000.0 * pose[2] / 1000.0;
 
-	// Add padding to keep stuff on screen
-	pX = pX + 40;
-	pY = pY + 40;
-	pZ = pZ + 40;
+// 	// Add padding to keep stuff on screen
+// 	pX = pX + 40;
+// 	pY = pY + 40;
+// 	pZ = pZ + 40;
 
 	// cv::Point humanPoint1 = cv::Point((int)pX, (int)pY);
 	// cv::circle(top_view_image, humanPoint1, 10, need1, 5, cv::LINE_AA);
@@ -299,8 +318,8 @@ void GastroViz::SetTopView(const cv::Vec6f& pose, double confidence, const std::
 	// cv::Point humanPoint2 = cv::Point((int)fx, (int)fy);
 	// cv::circle(top_view_image, humanPoint2, 10, need2, 5, cv::LINE_AA);
 
-	cv::Point humanPoint3 = cv::Point((int)(cx/2.0 + pose[0]), (int)(cy/2.0));
-	cv::circle(top_view_image, humanPoint3, 10, need3, 5, cv::LINE_AA);
+	//cv::Point humanPoint3 = cv::Point((int)(cx/2.0 + pose[0]), (int)(cy/2.0));
+	//cv::circle(top_view_image, humanPoint3, 10, need3, 5, cv::LINE_AA);
 
 }
 
@@ -328,6 +347,7 @@ void GastroViz::ClearClassifier(int numPeople)
 void GastroViz::SetClassifier(bool newSet, int personId, int numPeople, const cv::Vec6f& pose, double confidence, const std::vector<std::pair<std::string, double> >& au_intensities,
 	const std::vector<std::pair<std::string, double> >& au_occurences)
 {
+
 	const int AU_TRACKBAR_LENGTH = 400;
 	const int AU_TRACKBAR_HEIGHT = 10;
 
@@ -341,6 +361,18 @@ void GastroViz::SetClassifier(bool newSet, int personId, int numPeople, const cv
 	std::map<std::string, double> intensities_map;
 
 	const int nb_aus = (int) au_names.size();
+
+	for (size_t idx = 0; idx < au_intensities.size(); idx++)
+	{
+		au_names.insert(au_intensities[idx].first);
+		intensities_map[au_intensities[idx].first] = au_intensities[idx].second;
+	}
+
+	for (size_t idx = 0; idx < au_occurences.size(); idx++)
+	{
+		au_names.insert(au_occurences[idx].first);
+		occurences_map[au_occurences[idx].first] = au_occurences[idx].second > 0;
+	}
 
 	double neediness = 0;
 	double interruptibility = 0;
@@ -393,7 +425,9 @@ void GastroViz::SetClassifier(bool newSet, int personId, int numPeople, const cv
 
 
 
-	interruptibility = 1 - neediness;//(3.0 - (intensities_map[AUS_DESCRIPTION[4]] + .5*intensities_map[AUS_DESCRIPTION[7]] + .5*intensities_map[AUS_DESCRIPTION[7]])) / 3.0;
+	//interruptibility = (pow(1.0 * pose[4] - old_pose[4], 2) + pow(1.0 * pose[5] - old_pose[5], 2) + pow(1.0 * pose[6] - old_pose[6], 2)); 
+	
+	//(3.0 - (intensities_map[AUS_DESCRIPTION[4]] + .5*intensities_map[AUS_DESCRIPTION[7]] + .5*intensities_map[AUS_DESCRIPTION[7]])) / 3.0;
 	
 	classifications["neediness"] = std::make_pair(neediness > 0 ? 1 : 0, neediness);
 	classifications["interruptibility"] = std::make_pair(interruptibility > 0 ? 1 : 0, interruptibility);
@@ -403,19 +437,26 @@ void GastroViz::SetClassifier(bool newSet, int personId, int numPeople, const cv
 	bool need_present = neediness > 0 ? .5 : 0;
 	double need_intensity = neediness;
 
+	cv::Scalar need_color = color_level_0;
+	if (need_intensity > .8) {need_color = color_level_4;}
+	else if (need_intensity > .6) {need_color = color_level_3;}
+	else if (need_intensity > .4) {need_color = color_level_2;}
+	else if (need_intensity > .2) {need_color = color_level_1;}
+	else if (need_intensity > 0) {need_color = color_level_0;}
+
 	// ADD THESE METRICS TO THE GUI
 	int offset = MARGIN_Y + idx * (AU_TRACKBAR_HEIGHT + 10);
-	std::ostringstream au_i;
-	au_i << std::setprecision(2) << std::setw(4) << std::fixed << need_intensity;
+	std::ostringstream au_i_need;
+	au_i_need << std::setprecision(2) << std::setw(4) << std::fixed << need_intensity;
 	cv::putText(classifier_image, need_name, cv::Point(10, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.5, CV_RGB(need_present ? 0 : 200, 0, 0), 1, cv::LINE_AA);
 	//cv::putText(classifier_image, need_name, cv::Point(55, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(0, 0, 0), 1, cv::LINE_AA);
 
 	if (need_present)
 	{
-		cv::putText(classifier_image, au_i.str(), cv::Point(160, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(0, 100, 0), 1, cv::LINE_AA);
+		cv::putText(classifier_image, au_i_need.str(), cv::Point(160, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(0, 100, 0), 1, cv::LINE_AA);
 		cv::rectangle(classifier_image, cv::Point(MARGIN_X, offset),
-			cv::Point((int)(MARGIN_X + AU_TRACKBAR_LENGTH * need_intensity / 5.0), offset + AU_TRACKBAR_HEIGHT),
-			cv::Scalar(128, 128, 128),
+			cv::Point((int)(MARGIN_X + AU_TRACKBAR_LENGTH * need_intensity), offset + AU_TRACKBAR_HEIGHT),
+			need_color,
 			cv::FILLED);
 	}
 	else
@@ -423,30 +464,88 @@ void GastroViz::SetClassifier(bool newSet, int personId, int numPeople, const cv
 		cv::putText(classifier_image, "0.00", cv::Point(160, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(0, 0, 0), 1, cv::LINE_AA);
 	}
 
+	// INTERRUPTION POSTING
 	idx = (2 * personId) + 1;
+	cv::Matx33f rot = Euler2RotationMatrix(cv::Vec3f(pose[3], pose[4], pose[5]));
+	cv::Vec3f rpy = RotationMatrix2Euler(rot);
+
+	//interruptibility = pow(rpy[0] - old_pose[0], 2) + pow(rpy[1] - old_pose[1], 2) + pow(rpy[2] - old_pose[2], 2);
+	interruptibility = 2 - (neediness / 3.0);
+	float new_interrupt = 2 - (neediness / 2.0);
+	old_pose = rpy;
+
 	std::string interrupt_name = "Interruptibility " + std::to_string(personId + 1);
-	bool interrupt_present = (interruptibility > 0) ? .5 : 0;
+	bool interrupt_present = (new_interrupt > 0) ? .5 : 0;
 	
-	bool interrupt_intensity = interruptibility;
+	bool interrupt_intensity = need_intensity * .8;
+
+	cv::Scalar interrupt_color = interrupt_color_level_0;
+	if (interrupt_intensity > .8) {interrupt_color = interrupt_color_level_4;}
+	else if (interrupt_intensity > .6) {interrupt_color = interrupt_color_level_3;}
+	else if (interrupt_intensity > .4) {interrupt_color = interrupt_color_level_2;}
+	else if (interrupt_intensity > .2) {interrupt_color = interrupt_color_level_1;}
+	else if (interrupt_intensity > 0) {interrupt_color = interrupt_color_level_0;}
+
 
 	offset = MARGIN_Y + idx * (AU_TRACKBAR_HEIGHT + 10);
-	au_i;
-	au_i << std::setprecision(2) << std::setw(4) << std::fixed << interrupt_intensity;
+	std::ostringstream au_i_interrupt;
+	au_i_interrupt << std::setprecision(3) << std::setw(4) << std::fixed << interrupt_intensity;
 	cv::putText(classifier_image, interrupt_name, cv::Point(10, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.5, CV_RGB(interrupt_present ? 0 : 200, 0, 0), 1, cv::LINE_AA);
 	//cv::putText(classifier_image, interrupt_name, cv::Point(55, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(0, 0, 0), 1, cv::LINE_AA);
 
 	if (interrupt_present)
 	{
-		cv::putText(classifier_image, au_i.str(), cv::Point(160, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(0, 100, 0), 1, cv::LINE_AA);
+		cv::putText(classifier_image, au_i_interrupt.str(), cv::Point(160, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(0, 100, 0), 1, cv::LINE_AA);
 		cv::rectangle(classifier_image, cv::Point(MARGIN_X, offset),
-			cv::Point((int)(MARGIN_X + AU_TRACKBAR_LENGTH * interrupt_intensity / 5.0), offset + AU_TRACKBAR_HEIGHT),
-			cv::Scalar(128, 128, 128),
+			cv::Point((int)(MARGIN_X + AU_TRACKBAR_LENGTH * (interrupt_intensity / 5.0)), offset + AU_TRACKBAR_HEIGHT),
+			interrupt_color,
 			cv::FILLED);
 	}
 	else
 	{
 		cv::putText(classifier_image, "0.00", cv::Point(160, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(0, 0, 0), 1, cv::LINE_AA);
 	}
+
+	// Log for future use and potential graph
+	// needLog[personId].push_back(neediness);
+	// interruptLog[personId].push_back(interruptibility);
+
+	// cv::Mat tempLog;
+	// VectorToMat(needLog[personId],  tempLog);
+
+	// cv::Ptr<cv::plot::Plot2d> plot = cv::plot::createPlot2d(tempLog);
+	// plot->render(graph_image);
+	// cv::imshow( "Need Log", graph_image );
+
+
+	// TODO put in own section
+	if (top_view_image.empty())
+	{
+		top_view_image = cv::Mat(300, 300, CV_8UC3, cv::Scalar(255, 255, 255));
+	}
+
+	// DISTANCES are in mm
+	// Use 1/10 of a meter incremements?
+
+	// PINK
+	cv::Scalar need1 = cv::Scalar(255, 0, 255);
+	// RED
+	cv::Scalar need2 = cv::Scalar(0, 0, 255);
+	// BLUE
+	cv::Scalar need3 = cv::Scalar(255, 0, 0);
+
+
+	float pX = 2.5 * 1000.0 * pose[0] / 1000.0;
+	float pY = 2.5 * 1000.0 * pose[1] / 1000.0;
+	float pZ = 2.5 * 1000.0 * pose[2] / 1000.0;
+
+	// Add padding to keep stuff on screen
+	pX = pX + 40;
+	pY = pY + 40;
+	pZ = pZ + 40;
+
+	cv::Point humanPoint3 = cv::Point((int)(cx/2.0 + pose[0]), (int)(cy/2.0));
+	cv::circle(top_view_image, humanPoint3, 10, need_color, 5, cv::LINE_AA);
 
 }
 
@@ -664,17 +763,17 @@ char GastroViz::ShowObservation()
 	}
 	if (vis_hog && !hog_image.empty())
 	{
-		cv::imshow("hog", hog_image);
+		cv::imshow("HOG", hog_image);
 		ovservation_shown = true;
 	}
 	if (vis_aus && !action_units_image.empty())
 	{
-		cv::imshow("action units", action_units_image);
+		cv::imshow("In-Depth Action Units", action_units_image);
 		ovservation_shown = true;
 	}
 	if (vis_track)
 	{
-		cv::imshow("tracking result", captured_image);
+		cv::imshow("Tracking Result", captured_image);
 		ovservation_shown = true;
 	}
 	
@@ -699,6 +798,14 @@ cv::Mat GastroViz::GetHOGVis()
 	return hog_image;
 }
 
+
+void GastroViz::VectorToMat(const std::vector<float>& in,  cv::Mat& out)    
+{
+	std::vector<float>::const_iterator it = in.begin();
+	cv::MatIterator_<uchar> jt, end;
+	jt = out.begin<uchar>();
+	for (; it != in.end(); ++it) { *jt++ = (uchar)(*it * 255); } 
+}
 
 // A sample function for graphing a histogram on an input image
 // Graphs a histogram of the colors in the original histogram

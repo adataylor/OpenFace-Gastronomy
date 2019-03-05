@@ -37,6 +37,9 @@
 // System includes
 #include <vector>
 
+// For plotting data
+//#include <opencv2/plot.hpp>
+
 // OpenCV includes
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -112,6 +115,8 @@ namespace Utilities
 
 	private:
 
+		void VectorToMat(const std::vector<float>& in,  cv::Mat& out);
+
 		// Temporary variables for visualization
 		cv::Mat captured_image; // out canvas
 		cv::Mat tracked_image;
@@ -121,9 +126,15 @@ namespace Utilities
 
 		cv::Mat classifier_image;
 		cv::Mat top_view_image;
+		cv::Mat graph_image;
+
+		std::vector<std::vector<float>> needLog;
+		std::vector<std::vector<float>> interruptLog;
 
 		// Useful for drawing 3d
 		float fx, fy, cx, cy;
+
+		cv::Vec3f old_pose;
 
 	};
 }
