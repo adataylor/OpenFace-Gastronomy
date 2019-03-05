@@ -554,8 +554,8 @@ void GastroViz::SetClassifier(bool newSet, int personId, int numPeople, const cv
 
 
 	// Log for future use and potential graph
-	// needLog[personId].push_back(neediness);
-	// interruptLog[personId].push_back(interruptibility);
+	needLog[personId].push_back(neediness);
+	interruptLog[personId].push_back(interrupt_raw);
 
 	// cv::Mat tempLog;
 	// VectorToMat(needLog[personId],  tempLog);
