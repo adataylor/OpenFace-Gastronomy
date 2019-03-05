@@ -371,6 +371,8 @@ int main(int argc, char **argv)
 					// TODO check if still want to show classifications for people offscreen
 					// Currently will only display for "active" models
 					GastroViz.SetClassifier(shouldReset, model, face_models.size(), LandmarkDetector::GetPose(face_models[model], sequence_reader.fx, sequence_reader.fy, sequence_reader.cx, sequence_reader.cy), face_models[model].detection_certainty, face_analyser.GetCurrentAUsReg(), face_analyser.GetCurrentAUsClass());
+					GastroViz.ShowNeedGraph(model);
+
 					shouldReset = false;
 					//GastroViz.SetTopView(LandmarkDetector::GetPose(face_models[model], sequence_reader.fx, sequence_reader.fy, sequence_reader.cx, sequence_reader.cy), face_models[model].detection_certainty, face_analyser.GetCurrentAUsReg(), face_analyser.GetCurrentAUsClass());
 

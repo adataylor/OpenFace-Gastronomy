@@ -95,11 +95,20 @@ cv::Scalar person_color_3 = cv::Scalar(191, 85, 75, 255);
 cv::Scalar person_color_4 = cv::Scalar(191, 7, 75, 255);
 cv::Scalar person_color_5 = cv::Scalar(0, 0, 100, 255);
 
-float needLog[10];
-float interruptLog[10];
+const int AU_TRACKBAR_LENGTH = 400;
+const int AU_TRACKBAR_HEIGHT = 10;
 
-float needLogSmooth[10];
-float interruptLogSmooth[10];
+const int MARGIN_X = 185;
+const int MARGIN_Y = 10;
+
+const int window_size = 50;
+const int average_size = 5;
+
+float needLog[window_size];
+float interruptLog[window_size];
+float needLogSmooth[window_size];
+float interruptLogSmooth[window_size];
+
 
 // Set up the GastroViz instance
 GastroViz::GastroViz(std::vector<std::string> arguments)
@@ -354,11 +363,6 @@ void GastroViz::SetTopView(const cv::Vec6f& pose, double confidence, const std::
 
 void GastroViz::ClearClassifier(int numPeople)
 {
-	const int AU_TRACKBAR_LENGTH = 400;
-	const int AU_TRACKBAR_HEIGHT = 10;
-
-	const int MARGIN_X = 185;
-	const int MARGIN_Y = 10;
 	
 	if (classifier_image.empty())
 	{
@@ -490,35 +494,42 @@ void GastroViz::SetClassifier(bool newSet, int personId, int numPeople, const cv
 
 
 	// STORE AND DISPLAY AVERAGE
-	int window_size = 10;
+	// init these with the first value in the array
 	float avgNeed = neediness;
 	float avgInterrupt = interrupt_raw;
+	int averageIndex = window_size - average_size;
 
 	for (size_t jdx = 0; jdx < window_size - 1; jdx++) {
 		needLog[jdx] = needLog[jdx + 1];
-		avgNeed = avgNeed + needLog[jdx + 1];
-
+		needLogSmooth[jdx] = needLog[jdx + 1];
+		
 		interruptLog[jdx] = interruptLog[jdx + 1];
-		avgInterrupt = avgInterrupt + interruptLog[jdx + 1];
+		interruptLogSmooth[jdx] = interruptLogSmooth[jdx + 1];
+		
+		if (jdx > averageIndex) {
+			avgNeed = avgNeed + needLog[jdx + 1];
+			avgInterrupt = avgInterrupt + interruptLog[jdx + 1];
+
+		}
+
 	}
 
 	needLog[window_size - 1] = interrupt_raw;
 	interruptLog[window_size - 1] = neediness;
 
-	avgNeed = avgNeed / window_size;
-	avgInterrupt = avgInterrupt / window_size;
+	avgNeed = avgNeed / average_size;
+	avgInterrupt = avgInterrupt / average_size;
 
-	// If you want to turn off value smoothing, you can do that here
+	needLogSmooth[window_size - 1] = avgNeed;
+	interruptLogSmooth[window_size - 1] = avgInterrupt;
+
+	// If you want to turn off value smoothing/averaging,in the display 
+	// you can do that here
 	if (true) {
 		neediness = avgNeed;
 		interrupt_raw = avgInterrupt;
 	}
-
-
-
-
-
-
+	// Otherwise just pick which need graph to display
 
 	// MODULATE for display if we so choose
 	double need_intensity = neediness;
@@ -800,9 +811,9 @@ char GastroViz::ShowObservation()
 {
 	bool ovservation_shown = false;
 
-	// if (!top_view_image.empty()) {
-	// 	cv::imshow("Top View", top_view_image);
-	// }
+	if (!graph_image.empty()) {
+		cv::imshow("Need Over Time Graph", graph_image);
+	}
 
 	if (!classifier_image.empty()) {
 		cv::imshow("Interaction Classifications", classifier_image);
@@ -896,4 +907,52 @@ void GastroViz::showHistogram(cv::Mat src, cv::Mat &hist_image)
    }
 }
 
+void GastroViz::ShowNeedGraph(int personId)
+{ // based on http://docs.opencv.org/2.4.4/modules/imgproc/doc/histograms.html?highlight=histogram#calchist
 
+	int yscale = 100;
+
+	if (graph_image.empty() || personId == 0)
+	{
+		//To do, handle if multiple people
+		graph_image = cv::Mat(MARGIN_Y * 2 + yscale, 2 * MARGIN_X + window_size*AU_TRACKBAR_HEIGHT, CV_8UC3, cv::Scalar(50, 50, 50));
+	}
+
+	// Get the correct color for the person
+	cv::Scalar person_color;
+	
+	if (personId == 0) {
+		person_color = person_color_0;		
+	} else if (personId == 1) {
+		person_color = person_color_1;		
+	} else if (personId == 2) {
+		person_color = person_color_2;		
+	} else if (personId == 3) {
+		person_color = person_color_3;		
+	} else if (personId == 4) {
+		person_color = person_color_4;		
+	} else {
+		person_color = person_color_5;		
+	} 
+
+	int sbins = window_size;
+
+	int indexA, indexB;
+	float dataA, dataB;
+	cv::Point ptA, ptB;
+
+   for( int s = 0; s < sbins - 1; s++ )
+   {
+	    indexA = s;
+	    indexB = s + 1;
+
+       	dataA = needLog[indexA];
+	   	dataB = needLog[indexB];
+
+		ptA = cv::Point(indexA * (AU_TRACKBAR_HEIGHT * 2), yscale - (dataA * yscale) + MARGIN_Y);
+		ptB = cv::Point(indexB * (AU_TRACKBAR_HEIGHT * 2), yscale - (dataB * yscale) + MARGIN_Y);
+
+       	int intensity = 1;
+    	line(graph_image, ptA, ptB, person_color, 1, 8, 0);
+   }
+}

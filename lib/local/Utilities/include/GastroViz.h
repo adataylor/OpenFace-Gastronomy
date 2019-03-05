@@ -84,6 +84,7 @@ namespace Utilities
 
 
 		void showHistogram(cv::Mat src, cv::Mat &hist_image);
+		void ShowNeedGraph(int personId);
 
 
 		// Gaze related observations
