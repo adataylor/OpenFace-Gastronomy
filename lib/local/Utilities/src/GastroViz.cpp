@@ -42,10 +42,10 @@
 #include <set>
 
 // For plotting data
-//#include <opencv2/plot.hpp>
+#include <opencv2/plot.hpp>
 
 // For drawing on images
-#include <opencv2/imgproc.hpp>
+// #include <opencv2/imgproc.hpp>
 
 using namespace Utilities;
 
@@ -242,8 +242,25 @@ void GastroViz::SetObservationLandmarks(const cv::Mat_<float>& landmarks_2D, dou
 
 
 // Draw the box around the person's face if it's sufficiently confident
-void GastroViz::SetObservationPose(const cv::Vec6f& pose, double confidence)
+void GastroViz::SetObservationPose(int personId, const cv::Vec6f& pose, double confidence)
 {
+
+	cv::Scalar person_color = cv::Scalar(255, 255, 255);
+
+	if (personId == 0) {
+		person_color = person_color_0;		
+	} else if (personId == 1) {
+		person_color = person_color_1;		
+	} else if (personId == 2) {
+		person_color = person_color_2;		
+	} else if (personId == 3) {
+		person_color = person_color_3;		
+	} else if (personId == 4) {
+		person_color = person_color_4;		
+	} else if (personId == 5) {
+		person_color = person_color_5;
+	} 
+
 
 	// Only draw if the reliability is reasonable, the value is slightly ad-hoc
 	if (confidence > visualisation_boundary)
@@ -259,7 +276,7 @@ void GastroViz::SetObservationPose(const cv::Vec6f& pose, double confidence)
 		int thickness = (int)std::ceil(2.0* ((double)captured_image.cols) / 640.0);
 
 		// Draw it in reddish if uncertain, blueish if certain
-		DrawBox(captured_image, pose, cv::Scalar(vis_certainty*255.0, 0, (1 - vis_certainty) * 255), thickness, fx, fy, cx, cy);
+		DrawBox(captured_image, pose, person_color, thickness, fx, fy, cx, cy);
 	}
 }
 
@@ -357,6 +374,21 @@ void GastroViz::ClearClassifier(int numPeople)
 void GastroViz::SetClassifier(bool newSet, int personId, int numPeople, const cv::Vec6f& pose, double confidence, const std::vector<std::pair<std::string, double> >& au_intensities,
 	const std::vector<std::pair<std::string, double> >& au_occurences)
 {
+	cv::Scalar person_color;
+	
+	if (personId == 0) {
+		person_color = person_color_0;		
+	} else if (personId == 1) {
+		person_color = person_color_1;		
+	} else if (personId == 2) {
+		person_color = person_color_2;		
+	} else if (personId == 3) {
+		person_color = person_color_3;		
+	} else if (personId == 4) {
+		person_color = person_color_4;		
+	} else {
+		person_color = person_color_5;		
+	} 
 
 	const int AU_TRACKBAR_LENGTH = 400;
 	const int AU_TRACKBAR_HEIGHT = 10;
@@ -459,12 +491,12 @@ void GastroViz::SetClassifier(bool newSet, int personId, int numPeople, const cv
 	int offset = MARGIN_Y + idx * (AU_TRACKBAR_HEIGHT + 10);
 	std::ostringstream au_i_need;
 	au_i_need << std::setprecision(2) << std::setw(4) << std::fixed << need_intensity;
-	cv::putText(classifier_image, need_name, cv::Point(10, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.5, CV_RGB(need_present ? 0 : 200, 0, 0), 1, cv::LINE_AA);
+	cv::putText(classifier_image, need_name, cv::Point(10, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.5, person_color, 1, cv::LINE_AA);
 	//cv::putText(classifier_image, need_name, cv::Point(55, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(0, 0, 0), 1, cv::LINE_AA);
 
 	if (need_present)
 	{
-		cv::putText(classifier_image, au_i_need.str(), cv::Point(160, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(0, 100, 0), 1, cv::LINE_AA);
+		cv::putText(classifier_image, au_i_need.str(), cv::Point(160, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, person_color, 1, cv::LINE_AA);
 		cv::rectangle(classifier_image, cv::Point(MARGIN_X, offset),
 			cv::Point((int)(MARGIN_X + AU_TRACKBAR_LENGTH * need_intensity), offset + AU_TRACKBAR_HEIGHT),
 			need_color,
@@ -536,12 +568,12 @@ void GastroViz::SetClassifier(bool newSet, int personId, int numPeople, const cv
 	int offset_interrupt = MARGIN_Y + idx2 * (AU_TRACKBAR_HEIGHT + 10);
 	std::ostringstream au_i_interrupt;
 	au_i_interrupt << std::setprecision(2) << std::setw(4) << std::fixed << interrupt_intensity;
-	cv::putText(classifier_image, interrupt_name, cv::Point(10, offset_interrupt + 10), cv::FONT_HERSHEY_SIMPLEX, 0.5, CV_RGB(need_present ? 0 : 200, 0, 0), 1, cv::LINE_AA);
+	cv::putText(classifier_image, interrupt_name, cv::Point(10, offset_interrupt + 10), cv::FONT_HERSHEY_SIMPLEX, 0.5, person_color, 1, cv::LINE_AA);
 	//cv::putText(classifier_image, need_name, cv::Point(55, offset + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(0, 0, 0), 1, cv::LINE_AA);
 
 	if (interrupt_present)
 	{
-		cv::putText(classifier_image, au_i_interrupt.str(), cv::Point(160, offset_interrupt + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, CV_RGB(0, 100, 0), 1, cv::LINE_AA);
+		cv::putText(classifier_image, au_i_interrupt.str(), cv::Point(160, offset_interrupt + 10), cv::FONT_HERSHEY_SIMPLEX, 0.3, person_color, 1, cv::LINE_AA);
 		cv::rectangle(classifier_image, cv::Point(MARGIN_X, offset_interrupt),
 			cv::Point((int)(MARGIN_X + AU_TRACKBAR_LENGTH * interrupt_intensity), offset_interrupt + AU_TRACKBAR_HEIGHT),
 			interrupt_color,
@@ -554,16 +586,15 @@ void GastroViz::SetClassifier(bool newSet, int personId, int numPeople, const cv
 
 
 	// Log for future use and potential graph
-	needLog[personId].push_back(neediness);
-	interruptLog[personId].push_back(interrupt_raw);
+	//needLog[personId].push_back(neediness);
+	//interruptLog[personId].push_back(interrupt_raw);
 
 	// cv::Mat tempLog;
 	// VectorToMat(needLog[personId],  tempLog);
 
-	// cv::Ptr<cv::plot::Plot2d> plot = cv::plot::createPlot2d(tempLog);
+	// cv::Ptr<cv::plot::Plot2d> plot = cv::plot::createPlot2d(needLog);
 	// plot->render(graph_image);
 	// cv::imshow( "Need Log", graph_image );
-
 
 }
 

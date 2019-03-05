@@ -38,7 +38,7 @@
 #include <vector>
 
 // For plotting data
-//#include <opencv2/plot.hpp>
+// #include <opencv2/plot.hpp>
 
 // OpenCV includes
 #include <opencv2/core/core.hpp>
@@ -68,7 +68,7 @@ namespace Utilities
 		void SetObservationLandmarks(const cv::Mat_<float>& landmarks_2D, double confidence, const cv::Mat_<int>& visibilities = cv::Mat_<int>());
 
 		// Pose related observations
-		void SetObservationPose(const cv::Vec6f& pose, double confidence);
+		void SetObservationPose(int personId, const cv::Vec6f& pose, double confidence);
 		
 		void SetObservationActionUnits(const std::vector<std::pair<std::string, double> >& au_intensities, const std::vector<std::pair<std::string, double> >& au_occurences);
 

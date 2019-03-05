@@ -363,7 +363,7 @@ int main(int argc, char **argv)
 					GastroViz.SetObservationFaceAlign(sim_warped_img);
 					GastroViz.SetObservationHOG(hog_descriptor, num_hog_rows, num_hog_cols);
 					GastroViz.SetObservationLandmarks(face_models[model].detected_landmarks, face_models[model].detection_certainty);
-					GastroViz.SetObservationPose(LandmarkDetector::GetPose(face_models[model], sequence_reader.fx, sequence_reader.fy, sequence_reader.cx, sequence_reader.cy), face_models[model].detection_certainty);
+					GastroViz.SetObservationPose(model, LandmarkDetector::GetPose(face_models[model], sequence_reader.fx, sequence_reader.fy, sequence_reader.cx, sequence_reader.cy), face_models[model].detection_certainty);
 					GastroViz.SetObservationGaze(gaze_direction0, gaze_direction1, LandmarkDetector::CalculateAllEyeLandmarks(face_models[model]), LandmarkDetector::Calculate3DEyeLandmarks(face_models[model], sequence_reader.fx, sequence_reader.fy, sequence_reader.cx, sequence_reader.cy), face_models[model].detection_certainty);
 					GastroViz.SetObservationActionUnits(face_analyser.GetCurrentAUsReg(), face_analyser.GetCurrentAUsClass());
 
