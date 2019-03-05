@@ -74,12 +74,12 @@ const std::map<std::string, std::string> AUS_DESCRIPTION = {
 	{ "AU45", "Blink               " },
 };
 
-cv::Scalar color_level_none = cv::Scalar(0, 0, 0);
-cv::Scalar color_level_0 = cv::Scalar(63, 191, 0);
-cv::Scalar color_level_1 = cv::Scalar(141, 191, 0);
-cv::Scalar color_level_2 = cv::Scalar(191, 162, 0);
-cv::Scalar color_level_3 = cv::Scalar(191, 85, 0);
-cv::Scalar color_level_4 = cv::Scalar(191, 7, 0);
+cv::Scalar color_level_none = cv::Scalar(0, 0, 0, 255);
+cv::Scalar color_level_0 = cv::Scalar(63, 191, 0, 255);
+cv::Scalar color_level_1 = cv::Scalar(141, 191, 0, 255);
+cv::Scalar color_level_2 = cv::Scalar(191, 162, 0, 255);
+cv::Scalar color_level_3 = cv::Scalar(191, 85, 0, 255);
+cv::Scalar color_level_4 = cv::Scalar(191, 7, 0, 255);
 
 cv::Scalar interrupt_color_level_none = cv::Scalar(0, 0, 100);
 cv::Scalar interrupt_color_level_0 = cv::Scalar(63, 191, 75);
@@ -87,6 +87,16 @@ cv::Scalar interrupt_color_level_1 = cv::Scalar(141, 191, 75);
 cv::Scalar interrupt_color_level_2 = cv::Scalar(191, 162, 75);
 cv::Scalar interrupt_color_level_3 = cv::Scalar(191, 85, 75);
 cv::Scalar interrupt_color_level_4 = cv::Scalar(191, 7, 75);
+
+cv::Scalar person_color_0 = cv::Scalar(63, 191, 75, 255);
+cv::Scalar person_color_1 = cv::Scalar(141, 191, 75, 255);
+cv::Scalar person_color_2 = cv::Scalar(191, 162, 75, 255);
+cv::Scalar person_color_3 = cv::Scalar(191, 85, 75, 255);
+cv::Scalar person_color_4 = cv::Scalar(191, 7, 75, 255);
+cv::Scalar person_color_5 = cv::Scalar(0, 0, 100, 255);
+
+
+
 
 
 // Set up the GastroViz instance
@@ -418,7 +428,8 @@ void GastroViz::SetClassifier(bool newSet, int personId, int numPeople, const cv
 			intensity = occurences_map[au_name] == 0 ? 0 : 5;
 		}
 
-		neediness = neediness + (intensity / 18.0);
+		// Range is now ALWAYS between 0 and 1
+		neediness = neediness + ((intensity / 5.0) / 18.0);
 
 		aus[au_name] = std::make_pair(occurence, intensity);
 	}
