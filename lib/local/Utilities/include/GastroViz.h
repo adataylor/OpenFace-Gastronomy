@@ -128,12 +128,12 @@ namespace Utilities
 		cv::Mat top_view_image;
 		cv::Mat graph_image;
 
-		float need_smooth;
-		float interrupt_smooth;
+		float need_smooth = 0.001;
+		float interrupt_smooth = 0.001;
 		int smooth_window = 10;
 
-		std::vector<std::vector<float>> needLog;
-		std::vector<std::vector<float>> interruptLog;
+		// std::vector<std::vector<float>> needLog;
+		// std::vector<std::vector<float>> interruptLog;
 
 		// Useful for drawing 3d
 		float fx, fy, cx, cy;

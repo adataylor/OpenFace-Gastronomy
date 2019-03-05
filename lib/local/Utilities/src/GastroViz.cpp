@@ -95,9 +95,11 @@ cv::Scalar person_color_3 = cv::Scalar(191, 85, 75, 255);
 cv::Scalar person_color_4 = cv::Scalar(191, 7, 75, 255);
 cv::Scalar person_color_5 = cv::Scalar(0, 0, 100, 255);
 
+float needLog[10];
+float interruptLog[10];
 
-
-
+float needLogSmooth[10];
+float interruptLogSmooth[10];
 
 // Set up the GastroViz instance
 GastroViz::GastroViz(std::vector<std::string> arguments)
@@ -422,7 +424,7 @@ void GastroViz::SetClassifier(bool newSet, int personId, int numPeople, const cv
 	if (classifier_image.empty())
 	{
 		//To do, handle if multiple people
-		classifier_image = cv::Mat(2 * numPeople * (AU_TRACKBAR_HEIGHT + 10) + MARGIN_Y * 2, AU_TRACKBAR_LENGTH + MARGIN_X, CV_8UC3, cv::Scalar(255, 255, 255));
+		classifier_image = cv::Mat(2 * numPeople * (AU_TRACKBAR_HEIGHT + 10) + MARGIN_Y * 2, AU_TRACKBAR_LENGTH + MARGIN_X + AU_TRACKBAR_HEIGHT, CV_8UC3, cv::Scalar(255, 255, 255));
 	}
 	else if (newSet)
 	{
@@ -472,28 +474,61 @@ void GastroViz::SetClassifier(bool newSet, int personId, int numPeople, const cv
 	cv::Vec3f rpy = RotationMatrix2Euler(rot);
 
 	double interrupt_raw = pow(rpy[0] - old_pose[0], 2) + pow(rpy[1] - old_pose[1], 2) + pow(rpy[2] - old_pose[2], 2);
-	interrupt_raw = interrupt_raw / 16.0;
+	interrupt_raw = interrupt_raw / 20.0;
 	old_pose = rpy;
 
+	// Check if there's currently a reading before doing anything to the values
+	bool need_present = neediness > 0 ? .5 : 0;	
+	bool interrupt_present = interrupt_raw > 0 ? .5 : 0;
 
 	// HARSH CHECKS ON UPPER BOUNDS
 	if (neediness > 1) 		{	neediness = 1;	}
 	if (interrupt_raw > 1) 	{	interrupt_raw = 1;	}
 
-	if (neediness < 0) 		{	neediness = 0;	}
-	if (interrupt_raw < 0) 	{	interrupt_raw = 0;	}
+	if (neediness < 0) 		{	neediness = 0.0001;	}
+	if (interrupt_raw < 0) 	{	interrupt_raw = 0.0001;	}
+
+
+	// STORE AND DISPLAY AVERAGE
+	int window_size = 10;
+	float avgNeed = neediness;
+	float avgInterrupt = interrupt_raw;
+
+	for (size_t jdx = 0; jdx < window_size - 1; jdx++) {
+		needLog[jdx] = needLog[jdx + 1];
+		avgNeed = avgNeed + needLog[jdx + 1];
+
+		interruptLog[jdx] = interruptLog[jdx + 1];
+		avgInterrupt = avgInterrupt + interruptLog[jdx + 1];
+	}
+
+	needLog[window_size - 1] = interrupt_raw;
+	interruptLog[window_size - 1] = neediness;
+
+	avgNeed = avgNeed / window_size;
+	avgInterrupt = avgInterrupt / window_size;
+
+	// If you want to turn off value smoothing, you can do that here
+	if (true) {
+		neediness = avgNeed;
+		interrupt_raw = avgInterrupt;
+	}
 
 
 
 
+
+
+
+	// MODULATE for display if we so choose
+	double need_intensity = neediness;
+	double interrupt_intensity = interrupt_raw;
 
 	classifications["neediness"] = std::make_pair(neediness > 0 ? 1 : 0, neediness);
 
 	int idx = (2 * personId);
 	std::string need_name = "Neediness " + std::to_string(personId + 1);
-	bool need_present = neediness > 0 ? .5 : 0;
-	double need_intensity = neediness;
-
+	
 	cv::Scalar need_color = color_level_0;
 	if (need_intensity > .8) {need_color = color_level_4;}
 	else if (need_intensity > .6) {need_color = color_level_3;}
@@ -525,8 +560,6 @@ void GastroViz::SetClassifier(bool newSet, int personId, int numPeople, const cv
 
 	int idx2 = (2 * personId) + 1;
 	std::string interrupt_name = "Interruptibility " + std::to_string(personId + 1);
-	bool interrupt_present = interrupt_raw > 0 ? .5 : 0;
-	double interrupt_intensity = interrupt_raw * 3.0;
 
 	cv::Scalar interrupt_color = color_level_0;
 	if (interrupt_intensity > .8) {interrupt_color = color_level_4;}
