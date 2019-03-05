@@ -104,10 +104,25 @@ const int MARGIN_Y = 10;
 const int window_size = 50;
 const int average_size = 5;
 
-float needLog[window_size];
-float interruptLog[window_size];
-float needLogSmooth[window_size];
-float interruptLogSmooth[window_size];
+float needLog_0[window_size];
+float interruptLog_0[window_size];
+float needLogSmooth_0[window_size];
+float interruptLogSmooth_0[window_size];
+
+float needLog_1[window_size];
+float interruptLog_1[window_size];
+float needLogSmooth_1[window_size];
+float interruptLogSmooth_1[window_size];
+
+float needLog_2[window_size];
+float interruptLog_2[window_size];
+float needLogSmooth_2[window_size];
+float interruptLogSmooth_2[window_size];
+
+float needLog_3[window_size];
+float interruptLog_3[window_size];
+float needLogSmooth_3[window_size];
+float interruptLogSmooth_3[window_size];
 
 
 // Set up the GastroViz instance
@@ -499,29 +514,116 @@ void GastroViz::SetClassifier(bool newSet, int personId, int numPeople, const cv
 	float avgInterrupt = interrupt_raw;
 	int averageIndex = window_size - average_size;
 
+
+if (personId == 0)
+{
 	for (size_t jdx = 0; jdx < window_size - 1; jdx++) {
-		needLog[jdx] = needLog[jdx + 1];
-		needLogSmooth[jdx] = needLog[jdx + 1];
+		needLog_0[jdx] = needLog_0[jdx + 1];
+		needLogSmooth_0[jdx] = needLog_0[jdx + 1];
 		
-		interruptLog[jdx] = interruptLog[jdx + 1];
-		interruptLogSmooth[jdx] = interruptLogSmooth[jdx + 1];
+		interruptLog_0[jdx] = interruptLog_0[jdx + 1];
+		interruptLogSmooth_0[jdx] = interruptLogSmooth_0[jdx + 1];
 		
 		if (jdx > averageIndex) {
-			avgNeed = avgNeed + needLog[jdx + 1];
-			avgInterrupt = avgInterrupt + interruptLog[jdx + 1];
+			avgNeed = avgNeed + needLog_0[jdx + 1];
+			avgInterrupt = avgInterrupt + interruptLog_0[jdx + 1];
 
 		}
 
 	}
 
-	needLog[window_size - 1] = interrupt_raw;
-	interruptLog[window_size - 1] = neediness;
+	needLog_0[window_size - 1] = interrupt_raw;
+	interruptLog_0[window_size - 1] = neediness;
 
 	avgNeed = avgNeed / average_size;
 	avgInterrupt = avgInterrupt / average_size;
 
-	needLogSmooth[window_size - 1] = avgNeed;
-	interruptLogSmooth[window_size - 1] = avgInterrupt;
+	needLogSmooth_0[window_size - 1] = avgNeed;
+	interruptLogSmooth_0[window_size - 1] = avgInterrupt;
+} else if (personId == 1)
+{
+	for (size_t jdx = 0; jdx < window_size - 1; jdx++) {
+		needLog_1[jdx] = needLog_1[jdx + 1];
+		needLogSmooth_1[jdx] = needLog_1[jdx + 1];
+		
+		interruptLog_1[jdx] = interruptLog_1[jdx + 1];
+		interruptLogSmooth_1[jdx] = interruptLogSmooth_1[jdx + 1];
+		
+		if (jdx > averageIndex) {
+			avgNeed = avgNeed + needLog_1[jdx + 1];
+			avgInterrupt = avgInterrupt + interruptLog_1[jdx + 1];
+
+		}
+
+	}
+
+	needLog_1[window_size - 1] = interrupt_raw;
+	interruptLog_1[window_size - 1] = neediness;
+
+	avgNeed = avgNeed / average_size;
+	avgInterrupt = avgInterrupt / average_size;
+
+	needLogSmooth_1[window_size - 1] = avgNeed;
+	interruptLogSmooth_1[window_size - 1] = avgInterrupt;
+} else if (personId == 2)
+{
+	for (size_t jdx = 0; jdx < window_size - 1; jdx++) {
+		needLog_2[jdx] = needLog_2[jdx + 1];
+		needLogSmooth_2[jdx] = needLog_2[jdx + 1];
+		
+		interruptLog_2[jdx] = interruptLog_2[jdx + 1];
+		interruptLogSmooth_2[jdx] = interruptLogSmooth_2[jdx + 1];
+		
+		if (jdx > averageIndex) {
+			avgNeed = avgNeed + needLog_2[jdx + 1];
+			avgInterrupt = avgInterrupt + interruptLog_2[jdx + 1];
+
+		}
+
+	}
+
+	needLog_2[window_size - 1] = interrupt_raw;
+	interruptLog_2[window_size - 1] = neediness;
+
+	avgNeed = avgNeed / average_size;
+	avgInterrupt = avgInterrupt / average_size;
+
+	needLogSmooth_2[window_size - 1] = avgNeed;
+	interruptLogSmooth_2[window_size - 1] = avgInterrupt;
+} else if (personId == 3)
+{
+	for (size_t jdx = 0; jdx < window_size - 1; jdx++) {
+		needLog_3[jdx] = needLog_3[jdx + 1];
+		needLogSmooth_3[jdx] = needLog_3[jdx + 1];
+		
+		interruptLog_3[jdx] = interruptLog_3[jdx + 1];
+		interruptLogSmooth_3[jdx] = interruptLogSmooth_3[jdx + 1];
+		
+		if (jdx > averageIndex) {
+			avgNeed = avgNeed + needLog_3[jdx + 1];
+			avgInterrupt = avgInterrupt + interruptLog_3[jdx + 1];
+
+		}
+
+	}
+
+	needLog_3[window_size - 1] = interrupt_raw;
+	interruptLog_3[window_size - 1] = neediness;
+
+	avgNeed = avgNeed / average_size;
+	avgInterrupt = avgInterrupt / average_size;
+
+	needLogSmooth_3[window_size - 1] = avgNeed;
+	interruptLogSmooth_3[window_size - 1] = avgInterrupt;
+}
+
+
+
+
+
+
+
+
 
 	// If you want to turn off value smoothing/averaging,in the display 
 	// you can do that here
@@ -920,15 +1022,20 @@ void GastroViz::ShowNeedGraph(int personId)
 
 	// Get the correct color for the person
 	cv::Scalar person_color;
-	
+	float *needLog;
+
 	if (personId == 0) {
-		person_color = person_color_0;		
+		person_color = person_color_0;
+		needLog = needLogSmooth_0;		
 	} else if (personId == 1) {
-		person_color = person_color_1;		
+		person_color = person_color_1;
+		needLog = needLogSmooth_1;		
 	} else if (personId == 2) {
-		person_color = person_color_2;		
+		person_color = person_color_2;
+		needLog = needLogSmooth_2;		
 	} else if (personId == 3) {
-		person_color = person_color_3;		
+		person_color = person_color_3;
+		needLog = needLogSmooth_3;		
 	} else if (personId == 4) {
 		person_color = person_color_4;		
 	} else {
