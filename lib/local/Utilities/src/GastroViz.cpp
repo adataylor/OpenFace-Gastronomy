@@ -74,7 +74,7 @@ const std::map<std::string, std::string> AUS_DESCRIPTION = {
 	{ "AU45", "Blink               " },
 };
 
-
+cv::Scalar color_rose = cv::Scalar(116, 77, 152);
 cv::Scalar color_pink = cv::Scalar(217, 0, 111);
 cv::Scalar color_red = cv::Scalar(234, 67, 53);
 cv::Scalar color_orange = cv::Scalar(215, 99, 0);
@@ -83,12 +83,13 @@ cv::Scalar color_green = cv::Scalar(52, 168, 83);
 cv::Scalar color_blue = cv::Scalar(66, 133, 244);
 cv::Scalar color_purple = cv::Scalar(116, 77, 152);
 
-cv::Scalar color_level_none = color_purple;
-cv::Scalar color_level_0 = color_blue;
-cv::Scalar color_level_1 = color_green;
-cv::Scalar color_level_2 = color_yellow;
-cv::Scalar color_level_3 = color_orange;
-cv::Scalar color_level_4 = color_red;
+cv::Scalar color_level_none = cv::Scalar(0, 0, 0, 255);
+cv::Scalar color_level_0 = cv::Scalar(0, 191, 63, 255);
+cv::Scalar color_level_1 = cv::Scalar(0, 191, 141, 255);
+cv::Scalar color_level_2 = cv::Scalar(0, 162, 191, 255);
+cv::Scalar color_level_3 = cv::Scalar(0, 85, 191, 255);
+cv::Scalar color_level_4 = cv::Scalar(0, 7, 191, 255);
+
 
 cv::Scalar interrupt_color_level_none = cv::Scalar(0, 0, 100);
 cv::Scalar interrupt_color_level_0 = cv::Scalar(63, 191, 75);
@@ -449,10 +450,13 @@ void GastroViz::SetClassifier(bool newSet, int personId, int numPeople, const cv
 	double neediness = 0;
 	// double interruptibility = 0;
 
+	int numberOfMetrics = 2;
+	int numberOfSlots = numberOfMetrics + 1;
+
 	if (classifier_image.empty())
 	{
 		//To do, handle if multiple people
-		classifier_image = cv::Mat(2 * numPeople * (AU_TRACKBAR_HEIGHT + 10) + MARGIN_Y * 2, AU_TRACKBAR_LENGTH + MARGIN_X + AU_TRACKBAR_HEIGHT, CV_8UC3, cv::Scalar(255, 255, 255));
+		classifier_image = cv::Mat(numberOfSlots * numPeople * (AU_TRACKBAR_HEIGHT + 10) + MARGIN_Y * 2, AU_TRACKBAR_LENGTH + MARGIN_X + AU_TRACKBAR_HEIGHT, CV_8UC3, cv::Scalar(255, 255, 255));
 	}
 	else if (newSet)
 	{
@@ -644,12 +648,12 @@ if (personId == 0)
 	// Otherwise just pick which need graph to display
 
 	// MODULATE for display if we so choose
-	double need_intensity = neediness;
-	double interrupt_intensity = interrupt_raw;
+	double need_intensity = neediness * 5.0;
+	double interrupt_intensity = interrupt_raw * 5.0;
 
 	classifications["neediness"] = std::make_pair(neediness > 0 ? 1 : 0, neediness);
 
-	int idx = (2 * personId);
+	int idx = (numberOfSlots * personId);
 	std::string need_name = "Neediness " + std::to_string(personId + 1);
 	
 	cv::Scalar need_color = color_level_0;
@@ -681,7 +685,7 @@ if (personId == 0)
 
 	// INTERRUPTION POSTING
 
-	int idx2 = (2 * personId) + 1;
+	int idx2 = (numberOfSlots * personId) + 1;
 	std::string interrupt_name = "Interruptibility " + std::to_string(personId + 1);
 
 	cv::Scalar interrupt_color = color_level_0;
