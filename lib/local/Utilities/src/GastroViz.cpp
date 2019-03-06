@@ -75,13 +75,14 @@ const std::map<std::string, std::string> AUS_DESCRIPTION = {
 };
 
 cv::Scalar color_rose = cv::Scalar(116, 77, 152);
-cv::Scalar color_pink = cv::Scalar(217, 0, 111);
-cv::Scalar color_red = cv::Scalar(234, 67, 53);
-cv::Scalar color_orange = cv::Scalar(215, 99, 0);
-cv::Scalar color_yellow = cv::Scalar(251, 188, 5);
-cv::Scalar color_green = cv::Scalar(52, 168, 83);
-cv::Scalar color_blue = cv::Scalar(66, 133, 244);
-cv::Scalar color_purple = cv::Scalar(116, 77, 152);
+cv::Scalar color_pink = cv::Scalar(111, 0, 217);
+cv::Scalar color_red = cv::Scalar(53, 67, 234);
+cv::Scalar color_orange = cv::Scalar(0, 99, 215);
+cv::Scalar color_yellow = cv::Scalar(5, 188, 251);
+cv::Scalar color_green = cv::Scalar(83, 168, 52);
+cv::Scalar color_blue = cv::Scalar(244, 133, 66);
+cv::Scalar color_lavender = cv::Scalar(152, 77, 116);
+cv::Scalar color_purple = cv::Scalar(217, 0, 111);
 
 cv::Scalar color_level_none = cv::Scalar(0, 0, 0, 255);
 cv::Scalar color_level_0 = cv::Scalar(0, 191, 63, 255);
@@ -90,6 +91,9 @@ cv::Scalar color_level_2 = cv::Scalar(0, 162, 191, 255);
 cv::Scalar color_level_3 = cv::Scalar(0, 85, 191, 255);
 cv::Scalar color_level_4 = cv::Scalar(0, 7, 191, 255);
 
+// TODO check interrupt color levels
+// currently not used
+// interrupt relies on the same levels as need (ie color_level)
 
 cv::Scalar interrupt_color_level_none = cv::Scalar(0, 0, 100);
 cv::Scalar interrupt_color_level_0 = cv::Scalar(63, 191, 75);
@@ -99,10 +103,10 @@ cv::Scalar interrupt_color_level_3 = cv::Scalar(191, 85, 75);
 cv::Scalar interrupt_color_level_4 = cv::Scalar(191, 7, 75);
 
 cv::Scalar person_color_0 = color_purple;
-cv::Scalar person_color_1 = color_green;
-cv::Scalar person_color_2 = color_pink;
-cv::Scalar person_color_3 = color_blue;
-cv::Scalar person_color_4 = color_orange;
+cv::Scalar person_color_1 = color_orange;
+cv::Scalar person_color_2 = color_blue;
+cv::Scalar person_color_3 = color_green;
+cv::Scalar person_color_4 = color_pink;
 cv::Scalar person_color_5 = color_red;
 
 const int AU_TRACKBAR_LENGTH = 400;
@@ -112,7 +116,7 @@ const int MARGIN_X = 185;
 const int MARGIN_Y = 10;
 
 const int window_size = 50;
-const int average_size = 5;
+const int average_size = 3;
 
 float needLog_0[window_size];
 float interruptLog_0[window_size];
@@ -133,6 +137,21 @@ float needLog_3[window_size];
 float interruptLog_3[window_size];
 float needLogSmooth_3[window_size];
 float interruptLogSmooth_3[window_size];
+
+float needLog_4[window_size];
+float interruptLog_4[window_size];
+float needLogSmooth_4[window_size];
+float interruptLogSmooth_4[window_size];
+
+float needLog_5[window_size];
+float interruptLog_5[window_size];
+float needLogSmooth_5[window_size];
+float interruptLogSmooth_5[window_size];
+
+float needLog_6[window_size];
+float interruptLog_6[window_size];
+float needLogSmooth_6[window_size];
+float interruptLogSmooth_6[window_size];
 
 
 // Set up the GastroViz instance
@@ -506,7 +525,8 @@ void GastroViz::SetClassifier(bool newSet, int personId, int numPeople, const cv
 	cv::Vec3f rpy = RotationMatrix2Euler(rot);
 
 	double interrupt_raw = pow(rpy[0] - old_pose[0], 2) + pow(rpy[1] - old_pose[1], 2) + pow(rpy[2] - old_pose[2], 2);
-	interrupt_raw = interrupt_raw / 20.0;
+	interrupt_raw = (double)1.0/((double)1.0+exp(double(-interrupt_raw)));
+
 	old_pose = rpy;
 
 	// Check if there's currently a reading before doing anything to the values
@@ -529,114 +549,183 @@ void GastroViz::SetClassifier(bool newSet, int personId, int numPeople, const cv
 	int averageIndex = window_size - average_size;
 
 
-if (personId == 0)
-{
-	for (size_t jdx = 0; jdx < window_size - 1; jdx++) {
-		needLog_0[jdx] = needLog_0[jdx + 1];
-		needLogSmooth_0[jdx] = needLog_0[jdx + 1];
-		
-		interruptLog_0[jdx] = interruptLog_0[jdx + 1];
-		interruptLogSmooth_0[jdx] = interruptLogSmooth_0[jdx + 1];
-		
-		if (jdx > averageIndex) {
-			avgNeed = avgNeed + needLog_0[jdx + 1];
-			avgInterrupt = avgInterrupt + interruptLog_0[jdx + 1];
+	if (personId == 0)
+	{
+		for (size_t jdx = 0; jdx < window_size - 1; jdx++) {
+			needLog_0[jdx] = needLog_0[jdx + 1];
+			needLogSmooth_0[jdx] = needLog_0[jdx + 1];
+			
+			interruptLog_0[jdx] = interruptLog_0[jdx + 1];
+			interruptLogSmooth_0[jdx] = interruptLogSmooth_0[jdx + 1];
+			
+			if (jdx > averageIndex) {
+				avgNeed = avgNeed + needLog_0[jdx + 1];
+				avgInterrupt = avgInterrupt + interruptLog_0[jdx + 1];
+
+			}
 
 		}
 
-	}
+		needLog_0[window_size - 1] = interrupt_raw;
+		interruptLog_0[window_size - 1] = neediness;
 
-	needLog_0[window_size - 1] = interrupt_raw;
-	interruptLog_0[window_size - 1] = neediness;
+		avgNeed = avgNeed / average_size;
+		avgInterrupt = avgInterrupt / average_size;
 
-	avgNeed = avgNeed / average_size;
-	avgInterrupt = avgInterrupt / average_size;
+		needLogSmooth_0[window_size - 1] = avgNeed;
+		interruptLogSmooth_0[window_size - 1] = avgInterrupt;
+	} else if (personId == 1)
+	{
+		for (size_t jdx = 0; jdx < window_size - 1; jdx++) {
+			needLog_1[jdx] = needLog_1[jdx + 1];
+			needLogSmooth_1[jdx] = needLog_1[jdx + 1];
+			
+			interruptLog_1[jdx] = interruptLog_1[jdx + 1];
+			interruptLogSmooth_1[jdx] = interruptLogSmooth_1[jdx + 1];
+			
+			if (jdx > averageIndex) {
+				avgNeed = avgNeed + needLog_1[jdx + 1];
+				avgInterrupt = avgInterrupt + interruptLog_1[jdx + 1];
 
-	needLogSmooth_0[window_size - 1] = avgNeed;
-	interruptLogSmooth_0[window_size - 1] = avgInterrupt;
-} else if (personId == 1)
-{
-	for (size_t jdx = 0; jdx < window_size - 1; jdx++) {
-		needLog_1[jdx] = needLog_1[jdx + 1];
-		needLogSmooth_1[jdx] = needLog_1[jdx + 1];
-		
-		interruptLog_1[jdx] = interruptLog_1[jdx + 1];
-		interruptLogSmooth_1[jdx] = interruptLogSmooth_1[jdx + 1];
-		
-		if (jdx > averageIndex) {
-			avgNeed = avgNeed + needLog_1[jdx + 1];
-			avgInterrupt = avgInterrupt + interruptLog_1[jdx + 1];
-
-		}
-
-	}
-
-	needLog_1[window_size - 1] = interrupt_raw;
-	interruptLog_1[window_size - 1] = neediness;
-
-	avgNeed = avgNeed / average_size;
-	avgInterrupt = avgInterrupt / average_size;
-
-	needLogSmooth_1[window_size - 1] = avgNeed;
-	interruptLogSmooth_1[window_size - 1] = avgInterrupt;
-} else if (personId == 2)
-{
-	for (size_t jdx = 0; jdx < window_size - 1; jdx++) {
-		needLog_2[jdx] = needLog_2[jdx + 1];
-		needLogSmooth_2[jdx] = needLog_2[jdx + 1];
-		
-		interruptLog_2[jdx] = interruptLog_2[jdx + 1];
-		interruptLogSmooth_2[jdx] = interruptLogSmooth_2[jdx + 1];
-		
-		if (jdx > averageIndex) {
-			avgNeed = avgNeed + needLog_2[jdx + 1];
-			avgInterrupt = avgInterrupt + interruptLog_2[jdx + 1];
+			}
 
 		}
 
-	}
+		needLog_1[window_size - 1] = interrupt_raw;
+		interruptLog_1[window_size - 1] = neediness;
 
-	needLog_2[window_size - 1] = interrupt_raw;
-	interruptLog_2[window_size - 1] = neediness;
+		avgNeed = avgNeed / average_size;
+		avgInterrupt = avgInterrupt / average_size;
 
-	avgNeed = avgNeed / average_size;
-	avgInterrupt = avgInterrupt / average_size;
+		needLogSmooth_1[window_size - 1] = avgNeed;
+		interruptLogSmooth_1[window_size - 1] = avgInterrupt;
+	} else if (personId == 2)
+	{
+		for (size_t jdx = 0; jdx < window_size - 1; jdx++) {
+			needLog_2[jdx] = needLog_2[jdx + 1];
+			needLogSmooth_2[jdx] = needLog_2[jdx + 1];
+			
+			interruptLog_2[jdx] = interruptLog_2[jdx + 1];
+			interruptLogSmooth_2[jdx] = interruptLogSmooth_2[jdx + 1];
+			
+			if (jdx > averageIndex) {
+				avgNeed = avgNeed + needLog_2[jdx + 1];
+				avgInterrupt = avgInterrupt + interruptLog_2[jdx + 1];
 
-	needLogSmooth_2[window_size - 1] = avgNeed;
-	interruptLogSmooth_2[window_size - 1] = avgInterrupt;
-} else if (personId == 3)
-{
-	for (size_t jdx = 0; jdx < window_size - 1; jdx++) {
-		needLog_3[jdx] = needLog_3[jdx + 1];
-		needLogSmooth_3[jdx] = needLog_3[jdx + 1];
-		
-		interruptLog_3[jdx] = interruptLog_3[jdx + 1];
-		interruptLogSmooth_3[jdx] = interruptLogSmooth_3[jdx + 1];
-		
-		if (jdx > averageIndex) {
-			avgNeed = avgNeed + needLog_3[jdx + 1];
-			avgInterrupt = avgInterrupt + interruptLog_3[jdx + 1];
+			}
 
 		}
 
+		needLog_2[window_size - 1] = interrupt_raw;
+		interruptLog_2[window_size - 1] = neediness;
+
+		avgNeed = avgNeed / average_size;
+		avgInterrupt = avgInterrupt / average_size;
+
+		needLogSmooth_2[window_size - 1] = avgNeed;
+		interruptLogSmooth_2[window_size - 1] = avgInterrupt;
+	} else if (personId == 3)
+	{
+		for (size_t jdx = 0; jdx < window_size - 1; jdx++) {
+			needLog_3[jdx] = needLog_3[jdx + 1];
+			needLogSmooth_3[jdx] = needLog_3[jdx + 1];
+			
+			interruptLog_3[jdx] = interruptLog_3[jdx + 1];
+			interruptLogSmooth_3[jdx] = interruptLogSmooth_3[jdx + 1];
+			
+			if (jdx > averageIndex) {
+				avgNeed = avgNeed + needLog_3[jdx + 1];
+				avgInterrupt = avgInterrupt + interruptLog_3[jdx + 1];
+
+			}
+
+		}
+
+		needLog_3[window_size - 1] = interrupt_raw;
+		interruptLog_3[window_size - 1] = neediness;
+
+		avgNeed = avgNeed / average_size;
+		avgInterrupt = avgInterrupt / average_size;
+
+		needLogSmooth_3[window_size - 1] = avgNeed;
+		interruptLogSmooth_3[window_size - 1] = avgInterrupt;
+	} else if (personId == 4)
+	{
+		for (size_t jdx = 0; jdx < window_size - 1; jdx++) {
+			needLog_4[jdx] = needLog_4[jdx + 1];
+			needLogSmooth_4[jdx] = needLog_4[jdx + 1];
+			
+			interruptLog_4[jdx] = interruptLog_4[jdx + 1];
+			interruptLogSmooth_4[jdx] = interruptLogSmooth_4[jdx + 1];
+			
+			if (jdx > averageIndex) {
+				avgNeed = avgNeed + needLog_4[jdx + 1];
+				avgInterrupt = avgInterrupt + interruptLog_4[jdx + 1];
+
+			}
+
+		}
+
+		needLog_4[window_size - 1] = interrupt_raw;
+		interruptLog_4[window_size - 1] = neediness;
+
+		avgNeed = avgNeed / average_size;
+		avgInterrupt = avgInterrupt / average_size;
+
+		needLogSmooth_4[window_size - 1] = avgNeed;
+		interruptLogSmooth_4[window_size - 1] = avgInterrupt;
+	} else if (personId == 5)
+	{
+		for (size_t jdx = 0; jdx < window_size - 1; jdx++) {
+			needLog_5[jdx] = needLog_5[jdx + 1];
+			needLogSmooth_5[jdx] = needLog_5[jdx + 1];
+			
+			interruptLog_5[jdx] = interruptLog_5[jdx + 1];
+			interruptLogSmooth_5[jdx] = interruptLogSmooth_5[jdx + 1];
+			
+			if (jdx > averageIndex) {
+				avgNeed = avgNeed + needLog_5[jdx + 1];
+				avgInterrupt = avgInterrupt + interruptLog_5[jdx + 1];
+
+			}
+
+		}
+
+		needLog_5[window_size - 1] = interrupt_raw;
+		interruptLog_5[window_size - 1] = neediness;
+
+		avgNeed = avgNeed / average_size;
+		avgInterrupt = avgInterrupt / average_size;
+
+		needLogSmooth_5[window_size - 1] = avgNeed;
+		interruptLogSmooth_5[window_size - 1] = avgInterrupt;
+
+	} else if (personId == 6)
+	{
+		for (size_t jdx = 0; jdx < window_size - 1; jdx++) {
+			needLog_6[jdx] = needLog_6[jdx + 1];
+			needLogSmooth_6[jdx] = needLog_6[jdx + 1];
+			
+			interruptLog_6[jdx] = interruptLog_6[jdx + 1];
+			interruptLogSmooth_6[jdx] = interruptLogSmooth_6[jdx + 1];
+			
+			if (jdx > averageIndex) {
+				avgNeed = avgNeed + needLog_6[jdx + 1];
+				avgInterrupt = avgInterrupt + interruptLog_6[jdx + 1];
+
+			}
+
+		}
+
+		needLog_6[window_size - 1] = interrupt_raw;
+		interruptLog_6[window_size - 1] = neediness;
+
+		avgNeed = avgNeed / average_size;
+		avgInterrupt = avgInterrupt / average_size;
+
+		needLogSmooth_6[window_size - 1] = avgNeed;
+		interruptLogSmooth_6[window_size - 1] = avgInterrupt;
 	}
-
-	needLog_3[window_size - 1] = interrupt_raw;
-	interruptLog_3[window_size - 1] = neediness;
-
-	avgNeed = avgNeed / average_size;
-	avgInterrupt = avgInterrupt / average_size;
-
-	needLogSmooth_3[window_size - 1] = avgNeed;
-	interruptLogSmooth_3[window_size - 1] = avgInterrupt;
-}
-
-
-
-
-
-
-
 
 
 	// If you want to turn off value smoothing/averaging,in the display 
@@ -648,8 +737,8 @@ if (personId == 0)
 	// Otherwise just pick which need graph to display
 
 	// MODULATE for display if we so choose
-	double need_intensity = neediness * 5.0;
-	double interrupt_intensity = interrupt_raw * 5.0;
+	double need_intensity = neediness;
+	double interrupt_intensity = interrupt_raw;
 
 	classifications["neediness"] = std::make_pair(neediness > 0 ? 1 : 0, neediness);
 
@@ -658,9 +747,9 @@ if (personId == 0)
 	
 	cv::Scalar need_color = color_level_0;
 	if (need_intensity > .8) {need_color = color_level_4;}
-	else if (need_intensity > .4) {need_color = color_level_3;}
-	else if (need_intensity > .2) {need_color = color_level_2;}
-	else if (need_intensity > .1) {need_color = color_level_1;}
+	else if (need_intensity > .6) {need_color = color_level_3;}
+	else if (need_intensity > .4) {need_color = color_level_2;}
+	else if (need_intensity > .2) {need_color = color_level_1;}
 	else if (need_intensity > 0) {need_color = color_level_0;}
 
 	// ADD THESE METRICS TO THE GUI
@@ -688,6 +777,7 @@ if (personId == 0)
 	int idx2 = (numberOfSlots * personId) + 1;
 	std::string interrupt_name = "Interruptibility " + std::to_string(personId + 1);
 
+	// TODO: Decide if want different colors for interrupt colors
 	cv::Scalar interrupt_color = color_level_0;
 	if (interrupt_intensity > .8) {interrupt_color = color_level_4;}
 	else if (interrupt_intensity > .6) {interrupt_color = color_level_3;}
@@ -1026,7 +1116,7 @@ void GastroViz::showHistogram(cv::Mat src, cv::Mat &hist_image)
 void GastroViz::ShowNeedGraph(int personId)
 { // based on http://docs.opencv.org/2.4.4/modules/imgproc/doc/histograms.html?highlight=histogram#calchist
 
-	int yscale = 100;
+	int yscale = 200;
 
 	if (graph_image.empty() || personId == 0)
 	{
