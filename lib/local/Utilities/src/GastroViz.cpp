@@ -74,6 +74,27 @@ const std::map<std::string, std::string> AUS_DESCRIPTION = {
 	{ "AU45", "Blink               " },
 };
 
+const std::map<std::string, float> AUS_WEIGHTS = {
+	{ "AU01", 1 },
+	{ "AU02", 1 },
+	{ "AU04", 1.0 },
+	{ "AU05", 1 },
+	{ "AU06", -1.0 }, //
+	{ "AU07", -1.0 },
+	{ "AU09", -1.0 },
+	{ "AU10", -1.0 },
+	{ "AU12", -1.0 },
+	{ "AU14", -1.0 },
+	{ "AU15", 1 },
+	{ "AU17", 1 },
+	{ "AU20", 1 },
+	{ "AU23", 1 },
+	{ "AU25", 1.0 },
+	{ "AU26", 1 },
+	{ "AU28", 1.0 },
+	{ "AU45", 1 },
+};
+
 cv::Scalar color_rose = cv::Scalar(116, 77, 152);
 cv::Scalar color_pink = cv::Scalar(111, 0, 217);
 cv::Scalar color_red = cv::Scalar(53, 67, 234);
@@ -466,7 +487,7 @@ void GastroViz::SetClassifier(bool newSet, int personId, int numPeople, const cv
 		occurences_map[au_occurences[idx].first] = au_occurences[idx].second > 0;
 	}
 
-	double neediness = 0;
+	//double neediness = .4;
 	// double interruptibility = 0;
 
 	int numberOfMetrics = 2;
@@ -489,7 +510,7 @@ void GastroViz::SetClassifier(bool newSet, int personId, int numPeople, const cv
 
 	std::map<std::string, std::pair<bool, double>> classifications;
 
-	neediness = 0;
+	double neediness = .4;
 	for (auto au_name : au_names)
 	{
 		// Insert the intensity and AU presense (as these do not always overlap check if they exist first)
@@ -515,7 +536,19 @@ void GastroViz::SetClassifier(bool newSet, int personId, int numPeople, const cv
 		}
 
 		// Range is now ALWAYS between 0 and 1
-		neediness = neediness + ((intensity / 5.0) / 18.0);
+		float need_frac = (intensity / 1.0) / 18.0;
+
+		float modifier = 1.0;
+		if (au_name == "AU06" || au_name == "AU12") {
+			modifier = -5.0;
+		}
+
+		if (au_name == "AU04" || au_name == "AU05" || au_name == "AU23") {
+			modifier = 5.0;
+		}
+
+		need_frac = need_frac * modifier;
+		neediness = neediness + need_frac;
 
 		aus[au_name] = std::make_pair(occurence, intensity);
 	}
@@ -566,8 +599,8 @@ void GastroViz::SetClassifier(bool newSet, int personId, int numPeople, const cv
 
 		}
 
-		needLog_0[window_size - 1] = interrupt_raw;
-		interruptLog_0[window_size - 1] = neediness;
+		needLog_0[window_size - 1] = neediness;
+		interruptLog_0[window_size - 1] = interrupt_raw;
 
 		avgNeed = avgNeed / average_size;
 		avgInterrupt = avgInterrupt / average_size;
@@ -591,8 +624,8 @@ void GastroViz::SetClassifier(bool newSet, int personId, int numPeople, const cv
 
 		}
 
-		needLog_1[window_size - 1] = interrupt_raw;
-		interruptLog_1[window_size - 1] = neediness;
+		needLog_1[window_size - 1] = neediness;
+		interruptLog_1[window_size - 1] = interrupt_raw;
 
 		avgNeed = avgNeed / average_size;
 		avgInterrupt = avgInterrupt / average_size;
@@ -616,8 +649,8 @@ void GastroViz::SetClassifier(bool newSet, int personId, int numPeople, const cv
 
 		}
 
-		needLog_2[window_size - 1] = interrupt_raw;
-		interruptLog_2[window_size - 1] = neediness;
+		needLog_2[window_size - 1] = neediness;
+		interruptLog_2[window_size - 1] = interrupt_raw;
 
 		avgNeed = avgNeed / average_size;
 		avgInterrupt = avgInterrupt / average_size;
@@ -641,8 +674,8 @@ void GastroViz::SetClassifier(bool newSet, int personId, int numPeople, const cv
 
 		}
 
-		needLog_3[window_size - 1] = interrupt_raw;
-		interruptLog_3[window_size - 1] = neediness;
+		needLog_3[window_size - 1] = neediness;
+		interruptLog_3[window_size - 1] = interrupt_raw;
 
 		avgNeed = avgNeed / average_size;
 		avgInterrupt = avgInterrupt / average_size;
@@ -666,8 +699,8 @@ void GastroViz::SetClassifier(bool newSet, int personId, int numPeople, const cv
 
 		}
 
-		needLog_4[window_size - 1] = interrupt_raw;
-		interruptLog_4[window_size - 1] = neediness;
+		needLog_4[window_size - 1] = neediness;
+		interruptLog_4[window_size - 1] = interrupt_raw;
 
 		avgNeed = avgNeed / average_size;
 		avgInterrupt = avgInterrupt / average_size;
@@ -691,8 +724,8 @@ void GastroViz::SetClassifier(bool newSet, int personId, int numPeople, const cv
 
 		}
 
-		needLog_5[window_size - 1] = interrupt_raw;
-		interruptLog_5[window_size - 1] = neediness;
+		needLog_5[window_size - 1] = neediness;
+		interruptLog_5[window_size - 1] = interrupt_raw;
 
 		avgNeed = avgNeed / average_size;
 		avgInterrupt = avgInterrupt / average_size;
@@ -717,8 +750,8 @@ void GastroViz::SetClassifier(bool newSet, int personId, int numPeople, const cv
 
 		}
 
-		needLog_6[window_size - 1] = interrupt_raw;
-		interruptLog_6[window_size - 1] = neediness;
+		needLog_6[window_size - 1] = neediness;
+		interruptLog_6[window_size - 1] = interrupt_raw;
 
 		avgNeed = avgNeed / average_size;
 		avgInterrupt = avgInterrupt / average_size;
@@ -1121,7 +1154,7 @@ void GastroViz::ShowNeedGraph(int personId)
 	if (graph_image.empty() || personId == 0)
 	{
 		//To do, handle if multiple people
-		graph_image = cv::Mat(MARGIN_Y * 2 + yscale, 2 * MARGIN_X + window_size*AU_TRACKBAR_HEIGHT, CV_8UC3, cv::Scalar(50, 50, 50));
+		graph_image = cv::Mat(MARGIN_Y * 2 + yscale, 2 * MARGIN_X + window_size*AU_TRACKBAR_HEIGHT, CV_8UC3, cv::Scalar(0, 0, 0));
 	}
 
 	// Get the correct color for the person
