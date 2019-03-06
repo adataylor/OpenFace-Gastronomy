@@ -730,7 +730,7 @@ void GastroViz::SetClassifier(bool newSet, int personId, int numPeople, const cv
 
 	// If you want to turn off value smoothing/averaging,in the display 
 	// you can do that here
-	if (true) {
+	if (false) {
 		neediness = avgNeed;
 		interrupt_raw = avgInterrupt;
 	}
@@ -750,7 +750,7 @@ void GastroViz::SetClassifier(bool newSet, int personId, int numPeople, const cv
 	else if (need_intensity > .6) {need_color = color_level_3;}
 	else if (need_intensity > .4) {need_color = color_level_2;}
 	else if (need_intensity > .2) {need_color = color_level_1;}
-	else if (need_intensity > 0) {need_color = color_level_0;}
+	else if (need_intensity > .0) {need_color = color_level_0;}
 
 	// ADD THESE METRICS TO THE GUI
 	int offset = MARGIN_Y + idx * (AU_TRACKBAR_HEIGHT + 10);
@@ -779,11 +779,11 @@ void GastroViz::SetClassifier(bool newSet, int personId, int numPeople, const cv
 
 	// TODO: Decide if want different colors for interrupt colors
 	cv::Scalar interrupt_color = color_level_0;
-	if (interrupt_intensity > .8) {interrupt_color = color_level_4;}
-	else if (interrupt_intensity > .6) {interrupt_color = color_level_3;}
+	if (interrupt_intensity > .8) {interrupt_color = color_level_0;}
+	else if (interrupt_intensity > .6) {interrupt_color = color_level_1;}
 	else if (interrupt_intensity > .4) {interrupt_color = color_level_2;}
-	else if (interrupt_intensity > .2) {interrupt_color = color_level_1;}
-	else if (interrupt_intensity > .0) {interrupt_color = color_level_0;}
+	else if (interrupt_intensity > .2) {interrupt_color = color_level_3;}
+	else if (interrupt_intensity > .0) {interrupt_color = color_level_4;}
 
 	// ADD THESE METRICS TO THE GUI
 	int offset_interrupt = MARGIN_Y + idx2 * (AU_TRACKBAR_HEIGHT + 10);
@@ -1141,9 +1141,11 @@ void GastroViz::ShowNeedGraph(int personId)
 		person_color = person_color_3;
 		needLog = needLogSmooth_3;		
 	} else if (personId == 4) {
-		person_color = person_color_4;		
+		person_color = person_color_4;
+		needLog = needLogSmooth_4;	
 	} else {
-		person_color = person_color_5;		
+		person_color = person_color_5;
+		needLog = needLogSmooth_5;
 	} 
 
 	int sbins = window_size;
