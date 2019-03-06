@@ -74,12 +74,21 @@ const std::map<std::string, std::string> AUS_DESCRIPTION = {
 	{ "AU45", "Blink               " },
 };
 
-cv::Scalar color_level_none = cv::Scalar(0, 0, 0, 255);
-cv::Scalar color_level_0 = cv::Scalar(63, 191, 0, 255);
-cv::Scalar color_level_1 = cv::Scalar(141, 191, 0, 255);
-cv::Scalar color_level_2 = cv::Scalar(191, 162, 0, 255);
-cv::Scalar color_level_3 = cv::Scalar(191, 85, 0, 255);
-cv::Scalar color_level_4 = cv::Scalar(191, 7, 0, 255);
+
+cv::Scalar color_pink = cv::Scalar(217, 0, 111);
+cv::Scalar color_red = cv::Scalar(234, 67, 53);
+cv::Scalar color_orange = cv::Scalar(215, 99, 0);
+cv::Scalar color_yellow = cv::Scalar(251, 188, 5);
+cv::Scalar color_green = cv::Scalar(52, 168, 83);
+cv::Scalar color_blue = cv::Scalar(66, 133, 244);
+cv::Scalar color_purple = cv::Scalar(116, 77, 152);
+
+cv::Scalar color_level_none = color_purple;
+cv::Scalar color_level_0 = color_blue;
+cv::Scalar color_level_1 = color_green;
+cv::Scalar color_level_2 = color_yellow;
+cv::Scalar color_level_3 = color_orange;
+cv::Scalar color_level_4 = color_red;
 
 cv::Scalar interrupt_color_level_none = cv::Scalar(0, 0, 100);
 cv::Scalar interrupt_color_level_0 = cv::Scalar(63, 191, 75);
@@ -88,12 +97,12 @@ cv::Scalar interrupt_color_level_2 = cv::Scalar(191, 162, 75);
 cv::Scalar interrupt_color_level_3 = cv::Scalar(191, 85, 75);
 cv::Scalar interrupt_color_level_4 = cv::Scalar(191, 7, 75);
 
-cv::Scalar person_color_0 = cv::Scalar(63, 191, 75, 255);
-cv::Scalar person_color_1 = cv::Scalar(141, 191, 75, 255);
-cv::Scalar person_color_2 = cv::Scalar(191, 162, 75, 255);
-cv::Scalar person_color_3 = cv::Scalar(191, 85, 75, 255);
-cv::Scalar person_color_4 = cv::Scalar(191, 7, 75, 255);
-cv::Scalar person_color_5 = cv::Scalar(0, 0, 100, 255);
+cv::Scalar person_color_0 = color_purple;
+cv::Scalar person_color_1 = color_green;
+cv::Scalar person_color_2 = color_pink;
+cv::Scalar person_color_3 = color_blue;
+cv::Scalar person_color_4 = color_orange;
+cv::Scalar person_color_5 = color_red;
 
 const int AU_TRACKBAR_LENGTH = 400;
 const int AU_TRACKBAR_HEIGHT = 10;
@@ -507,6 +516,7 @@ void GastroViz::SetClassifier(bool newSet, int personId, int numPeople, const cv
 	if (neediness < 0) 		{	neediness = 0.0001;	}
 	if (interrupt_raw < 0) 	{	interrupt_raw = 0.0001;	}
 
+	neediness = neediness;
 
 	// STORE AND DISPLAY AVERAGE
 	// init these with the first value in the array
@@ -644,9 +654,9 @@ if (personId == 0)
 	
 	cv::Scalar need_color = color_level_0;
 	if (need_intensity > .8) {need_color = color_level_4;}
-	else if (need_intensity > .6) {need_color = color_level_3;}
-	else if (need_intensity > .4) {need_color = color_level_2;}
-	else if (need_intensity > .2) {need_color = color_level_1;}
+	else if (need_intensity > .4) {need_color = color_level_3;}
+	else if (need_intensity > .2) {need_color = color_level_2;}
+	else if (need_intensity > .1) {need_color = color_level_1;}
 	else if (need_intensity > 0) {need_color = color_level_0;}
 
 	// ADD THESE METRICS TO THE GUI
